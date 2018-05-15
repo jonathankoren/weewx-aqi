@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+
+# weewx-aqi
+# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# License: GPL 3
+
+import argparse
+import sys
+
+import weewx
+import weewx.engine
+import user.aqi.service
+import weeutil.weeutil
+import schemas
+
+
+parser = argparse.ArgumentParser(
+    description="Takes one or more file paths and reports their detected \
+                 encodings")
+parser.add_argument('config_file',
+                    help='WeeWx config file',
+                    type=str)
+parser.add_argument('--start_time',
+                    help='Timestamp in epoch seconds to start backfill from (default: 0)',
+                    type=int,
+                    default=0)
+parser.add_argument('--end_time',
+                    help='Timestamp in epoch seconds to stop backfill at (default: %d)' % (sys.maxsize),
+                    type=int,
+                    default=sys.maxsize)
+args = parser.parse_args()
+
+
+config = weewx.engine.getConfiguration(args.config_file)
+engine = weewx.engine.StdEngine(config)
+service = user.aqi.service.AqiService(engine, config)
+
+wx_db = engine.db_binder.get_manager(data_binding='wx_binding', initialize=True)
+wx_column_names = [x[0] for x in schemas.wview.schema]
+num_wx_cols = len(wx_column_names)
+
+
+sql = 'SELECT * FROM archive WHERE dateTime >= %d AND datetime < %d ORDER BY dateTime ASC' % (args.start_time, args.end_time)
+print 'Starting backfill from %d' % (args.start_time)
+total_intervals = 0
+for row in wx_db.genSql(sql):
+    record = {}
+    for i in range(num_wx_cols):
+        record[wx_column_names[i]] = row[i]
+    total_intervals += record['interval']
+    if total_intervals % 1440 == 0:
+        print 'processed %d days...' % (total_intervals / 1440)
+    event = weewx.Event(weewx.NEW_ARCHIVE_RECORD, record=record)
+    service.new_archive_record(event)
