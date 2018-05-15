@@ -45,18 +45,19 @@ along with a column storing the reading's timestamp in epoch seconds UTC, and
 a column with the semantics of WeeWx's `usUnits`. Optional columns for
 temperature, and atmospheric pressure are helpful, but not required.
 
-`dateTime`: *required* Timestamp of the reading in epoch seconds UTC.
-`usUnits`: *required* Unit system the readings are stored in.
-`temp`: *optional* Temperature at the sensor.
-`pressure`: *optional* Atmospheric at the sensor.
-`pm2_5`:  *optional* Particulate matter smaller than 2.5 micrometers
-`pm10_0`:  *optional* Particulate matter smaller than 10 micrometers
-`co`:  *optional* Carbon monoxide
-`no2`:  *optional* Nitrogen dioxide
-`so2`:  *optional* Sulfur dioxide
-`o3`:  *optional* Ozone
-`nh3`:  *optional* Ammonia
-`pb`:  *optional* Lead
+The configurable schema columns are:
+* `dateTime`: *required* Timestamp of the reading in epoch seconds UTC.
+* `usUnits`: *required* Unit system the readings are stored in.
+* `temp`: *optional* Temperature at the sensor.
+* `pressure`: *optional* Atmospheric at the sensor.
+* `pm2_5`:  *optional* Particulate matter smaller than 2.5 micrometers
+* `pm10_0`:  *optional* Particulate matter smaller than 10 micrometers
+* `co`:  *optional* Carbon monoxide
+* `no2`:  *optional* Nitrogen dioxide
+* `so2`:  *optional* Sulfur dioxide
+* `o3`:  *optional* Ozone
+* `nh3`:  *optional* Ammonia
+* `pb`:  *optional* Lead
 
 All air quality indicies, with the exception of Canada's, can be calculated
 for a single pollutant. Additionally, all air quality indicies can also
