@@ -22,7 +22,7 @@ class AirQualityIndex(standards.AqiStandards):
     Note that AQIs > 500 are explicitly undefined, and should be reported as,
     "Beyond the AQI".'''
     def __init__(self, obs_frequency_in_sec):
-        super(AqiStandards, self).__init__(
+        super(AirQualityIndex, self).__init__(
             [GREEN, YELLOW, ORANGE, RED, PURPLE, MAROON],
             ['Good', 'Moderate', 'Unhealthy for Sensitive Groups', 'Unhealthy', 'Very Unhealthy', 'Hazardous'],
             5)
@@ -212,7 +212,7 @@ def nowcast_mean(observations, obs_frequency_in_sec, required_observation_ratio,
     # calculate hourly means
     start_time = observations[0][0]
     for obs in observations:
-        index = (obs[0] - start_time) / calculators.HOUR
+        index = (start_time - obs[0]) / calculators.HOUR
         hourly_samples[index] = hourly_samples[index] + 1
         hourly_means[index] = hourly_means[index] + obs[1]
 
@@ -221,7 +221,7 @@ def nowcast_mean(observations, obs_frequency_in_sec, required_observation_ratio,
     min_obs = None
     for i in range(len(hourly_means)):
         if hourly_samples[i] >= (calculators.HOUR / obs_frequency_in_sec) * required_observation_ratio:
-            hourly_means[i] = hourly_means[i] / hourly_samples[i]
+            hourly_means[i] = calculators.TRUNCATE_TO_1(hourly_means[i] / float(hourly_samples[i]))
             if (max_obs is None) or (hourly_means[i] > max_obs):
                 max_obs = hourly_means[i]
             if (min_obs is None) or (hourly_means[i] < min_obs):
@@ -251,8 +251,9 @@ def nowcast_mean(observations, obs_frequency_in_sec, required_observation_ratio,
         if hourly_means[i] is None:
             continue
         sample_weight = weight_factor ** i
-        numerator = numerator + (hourly_means[i] * sample_weight)
-        denominator = denominator + sample_weight
+        if hourly_means[i] is not None:
+            numerator = numerator + (hourly_means[i] * sample_weight)
+            denominator = denominator + sample_weight
     return numerator / float(denominator)
 
 class NowCast(standards.AqiStandards):
@@ -277,7 +278,7 @@ class NowCast(standards.AqiStandards):
         self.calculators[calculators.PM2_5].add_breakpoint_table(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_1,
             mean_cleaner=calculators.TRUNCATE_TO_1,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, self.calculators[calculators.PM2_5].required_observation_ratio, 2),
+            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 2),
             unit='microgram_per_meter_cubed',
             duration_in_secs=12 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec) \
@@ -292,7 +293,7 @@ class NowCast(standards.AqiStandards):
         self.calculators[calculators.PM10_0].add_breakpoint_table(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, self.calculators[calculators.PM10_0].required_observation_ratio, 2),
+            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 2),
             unit='microgram_per_meter_cubed',
             duration_in_secs=12 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec) \
@@ -307,7 +308,7 @@ class NowCast(standards.AqiStandards):
         self.calculators[calculators.O3].add_breakpoint_table(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, self.calculators[calculators.O3].required_observation_ratio, 1),
+            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 1),
             unit='parts_per_billion',
             duration_in_secs=8 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec) \
@@ -319,7 +320,7 @@ class NowCast(standards.AqiStandards):
         self.calculators[calculators.O3].add_breakpoint_table(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, self.calculators[calculators.O3].required_observation_ratio, 1),
+            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 1),
             unit='parts_per_billion',
             duration_in_secs=1 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec,

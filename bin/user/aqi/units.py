@@ -48,7 +48,6 @@ def convert_pollutant_units(pollutant, obs_value, obs_unit, required_unit, temp_
     else:
         return weewx.units.conversionDict[obs_unit][required_unit](obs_value)
 
-
 def molar_volume_in_litres(temp_in_kelvin, pressure_in_pascals):
     '''Calculates the molar volume of a gas at temperature and pressure according
     to the ideal gas law:

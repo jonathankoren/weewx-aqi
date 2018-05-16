@@ -237,7 +237,7 @@ class AqiService(weewx.engine.StdService):
                 sql += ', '
             sql += real_col + ' AS ' + as_col
             first = False
-        sql += ' FROM %s WHERE %s >= ? AND %s <= ? ORDER BY %s DESC' % (self.sensor_dbm.table_name,
+        sql += ' FROM %s WHERE %s >= ? AND %s <= ? ORDER BY %s ASC' % (self.sensor_dbm.table_name,
             self.sensor_epoch_seconds_column, self.sensor_epoch_seconds_column,
             self.sensor_epoch_seconds_column)
         pollutant_observations = self.sensor_dbm.genSql(sql, (start_time, end_time))
@@ -258,7 +258,7 @@ class AqiService(weewx.engine.StdService):
                     sql += ', '
                 sql += real_col + ' AS ' + as_col
                 first = False
-            sql += ' FROM %s WHERE %s >= ? AND %s <= ? ORDER BY %s DESC' % (self.sensor_dbm.table_name,
+            sql += ' FROM %s WHERE %s >= ? AND %s <= ? ORDER BY %s ASC' % (self.sensor_dbm.table_name,
                 self.sensor_epoch_seconds_column, self.sensor_epoch_seconds_column,
                 self.sensor_epoch_seconds_column)
             weather_observations = self.sensor_dbm.genSql(sql, (start_time, end_time))
@@ -268,7 +268,7 @@ class AqiService(weewx.engine.StdService):
             # See https://github.com/weewx/weewx/wiki/Barometer,-pressure,-and-altimeter
             weather_observations_real_cols = [ 'dateTime', 'outTemp', 'pressure', 'usUnits' ]
             weather_observations_as_cols = [ 'dateTime', 'outTemp', 'pressure', 'weather_usUnits' ]
-            sql = 'SELECT ' + ','.join(weather_observations_real_cols) + ' FROM archive WHERE dateTime >= ? AND %s <= ? ORDER BY %s DESC' % (
+            sql = 'SELECT ' + ','.join(weather_observations_real_cols) + ' FROM archive WHERE dateTime >= ? AND %s <= ? ORDER BY %s ASC' % (
                 self.sensor_epoch_seconds_column, self.sensor_epoch_seconds_column,
                 self.sensor_epoch_seconds_column)
             weather_observations = self.sensor_dbm.genSql(sql, (start_time, end_time))
@@ -289,7 +289,7 @@ class AqiService(weewx.engine.StdService):
 
         if len(joined) == 0:
             return
-            
+
         # convert sensor units to aqi required units, possibly using the weather columns
         for i in range(len(joined)):
             row = joined[i]

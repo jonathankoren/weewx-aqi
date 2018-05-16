@@ -32,32 +32,28 @@ def get_last_valid_index(observations, duration_in_secs):
     '''Returns index into observations of the observation that is the
     closest, but not earlier than, earliest_valid_timestamp.'''
     earliest_valid_timestamp = observations[0][0] - duration_in_secs
-    if observations[-1][0] >= earliest_valid_timestamp:
-        # this is the most common case
-        return len(observations) - 1
-    else:
-        best_delta = None
-        best_index = None
-        start = 0
-        end = len(observations)
-        while start < end:
-            mid = int((end - start) / 2) + start
-            delta = observations[mid][0] - earliest_valid_timestamp;
-            if delta < 0:
-                # observation is too early
-                end = mid
+    best_delta = None
+    best_index = None
+    start = 0
+    end = len(observations)
+    while start < end:
+        mid = int((end - start) / 2) + start
+        delta = observations[mid][0] - earliest_valid_timestamp;
+        if delta < 0:
+            # observation is too early
+            end = mid
+        else:
+            # observation might be valid
+            if best_delta is None or best_delta > delta:
+                best_delta = delta
+                best_index = mid
+                start = mid + 1
             else:
-                # observation might be valid
-                if best_delta is None or best_delta > delta:
-                    best_delta = delta
-                    best_index = mid
-                    start = mid + 1
-                else:
-                    # worst delta, go to the front
-                    end = mid
-        if best_index is None:
-            raise ValueError('all observations are outside the valid range')
-        return best_index
+                # worst delta, go to the front
+                end = mid
+    if best_index is None:
+        raise ValueError('all observations are outside the valid range')
+    return best_index
 
 def validate_number_of_observations(observations, duration_in_secs, obs_frequency_in_sec, required_observation_ratio):
     '''Checks that there are enough observations to calculate a metric. If not
