@@ -25,7 +25,7 @@ class NationalAirQualityIndex(standards.AqiStandards):
     Please note AQI values [400, 500] may be incorrect (in particular for O3 and Pb),
     due to lack of specification in the standards document.'''
     def __init__(self, obs_frequency_in_sec):
-        super(AqiStandards, self).__init__(
+        super(NationalAirQualityIndex, self).__init__(
             [GREEN, LIGHT_GREEN, PINK, ORANGE, RED, DARK_RED],
             ['Good', 'Satisfactory', 'Moderately Polluted', 'Poor', 'Very Poor', 'Severe'],
             2)

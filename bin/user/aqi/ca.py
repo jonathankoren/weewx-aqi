@@ -23,7 +23,7 @@ class AirQualityHealthIndex(standards.AqiStandards):
     '''Calculates the Canadian Air Quality Health Index (AQHI) according to the
     https://en.wikipedia.org/wiki/Air_Quality_Health_Index_(Canada)'''
     def __init__(self, obs_frequency_in_sec):
-        super(AqiStandards, self).__init__(
+        super(AirQualityHealthIndex, self).__init__(
             [COLOR_1, COLOR_2, COLOR_3, COLOR_4, COLOR_5, COLOR_6, COLOR_7, COLOR_8, COLOR_9, COLOR_10, COLOR_PLUS],
             ['Low', 'Low', 'Low', 'Moderate', 'Moderate', 'Moderate', 'High', 'High', 'High', 'High', 'Very High'],
             1)

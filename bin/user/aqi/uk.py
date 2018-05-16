@@ -23,7 +23,7 @@ class DailyAirQualityIndex(standards.AqiStandards):
     '''Calucates the United Kingdom's Daily Air Quality Index (DAQI), as described in
     https://uk-air.defra.gov.uk/assets/documents/reports/cat14/1304251155_Update_on_Implementation_of_the_DAQI_April_2013_Final.pdf'''
     def __init__(self, obs_frequency_in_sec):
-        super(AqiStandards, self).__init__(
+        super(DailyAirQualityIndex, self).__init__(
             [COLOR_1, COLOR_2, COLOR_3, COLOR_4, COLOR_5, COLOR_6, COLOR_7, COLOR_8, COLOR_9, COLOR_10],
             ['Low', 'Low', 'Low', 'Moderate', 'Moderate', 'Moderate', 'High', 'High', 'High', 'Very High'],
             4)

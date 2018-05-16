@@ -22,7 +22,7 @@ class IndiceMetropolitanoCalidadAire(standards.AqiStandards):
     http://www.aire.cdmx.gob.mx/descargas/monitoreo/normatividad/NADF-009-AIRE-2006.pdf
     '''
     def __init__(self, obs_frequency_in_sec):
-        super(AqiStandards, self).__init__(
+        super(IndiceMetropolitanoCalidadAire, self).__init__(
             [GREEN, YELLOW, ORANGE, RED, PURPLE],
             ['Good', 'Regular', 'Bad', 'Very Bad', 'Extremely Bad'],
             3)
