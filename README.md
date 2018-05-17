@@ -5,7 +5,7 @@ Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
 ## What is it?
 
 `weewx-aqi` *is not* an air quality monitor. Instead, it calculates an air
-quality index from various pollutants. Air quality indicies are single numbers
+quality index from various pollutants. Air quality indices are single numbers
 that are meant to succinctly describe how safe the air is. `weeex-aqi` can
 calculate the following indices:
 
