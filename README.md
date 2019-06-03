@@ -1,11 +1,9 @@
 # weewx-aqi
-
-Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+Copyright 2018, 2019 - Jonathan Koren <jonathan@jonathankoren.com>
 
 ## What is it?
-
 `weewx-aqi` *is not* an air quality monitor. Instead, it calculates an air
-quality index from various pollutants. Air quality indicies are single numbers
+quality index from various pollutants. Air quality indices are single numbers
 that are meant to succinctly describe how safe the air is. `weeex-aqi` can
 calculate the following indices:
 
@@ -17,12 +15,10 @@ calculate the following indices:
 * United States's NowCast Air Quality Index
 
 ## Prerequisites
-
 A source for air quality data, such as
 [`weewx-purpleair`](https://github.com/bakerkj/weewx-purpleair) .
 
 ## Installation
-
 1) run the installer (from the git directory):
 
     wee_extension --install .
@@ -59,8 +55,8 @@ The configurable schema columns are:
 * `nh3`:  *optional* Ammonia
 * `pb`:  *optional* Lead
 
-All air quality indicies, with the exception of Canada's, can be calculated
-for a single pollutant. Additionally, all air quality indicies can also
+All air quality indices, with the exception of Canada's, can be calculated
+for a single pollutant. Additionally, all air quality indices can also
 calculate composite index. However, this index will only be calculated if
 readings are available for all of the requisite components.
 
@@ -86,43 +82,51 @@ The default `weewx.conf` block is:
 ```
 
 ## Display the data
-
 To make use of the plugin you will need to modify the templates in
 /etc/weewx/skins/*.tmpl to include references to the new data found in
 the aqi.sdb file.
 
 ### Examples:
-* The current value:
+#### The Current Value
+`$latest($data_binding='aqi_binding').aqi_pm2_5`
 
-```$latest('aqi_binding').aqi_pm2_5.formatted```
+#### Maximum Value Today
+`$day($data_binding='aqi_binding').aqi_pm2_5.max`
 
-* The maximum value today:
+#### Time Today When The Maximum Value Occurred
+`$day($data_binding='aqi_binding').aqi_pm2_5.maxtime`
 
-```$day('aqi_binding').aqi_pm2_5.max.formatted```
-
-* The time today when the maximum value occurred:
-
-```$day('aqi_binding').aqi_pm2_5.maxtime```
-
-
+#### Colors and Categories
 AQIs have categorical labels associated with the AQI values. The index of the
-current category is available via ```$latest('aqi_binding').aqi_pm2_5_category```.
-From this, the label and color category can be found via
-```(hex_color, category_label) = service.aqi_standard.interpret_aqi_index(index)```
+current category is available via `$latest($data_binding='aqi_binding').aqi_pm2_5_category`.
+The AQI color and category can be found using wrapping the index with the`$aqi`
+Cheetah template. Add to your `skin.conf`:
+```
+[CheetahGenerator]
+    search_list_extensions = user.aqi.service.AqiSearchList
+```
+And then in your template (e.g. `index.html.tmpl`), you can add something
+similar to this example `<DIV>`, that illustrates display the AQI value,
+category, and color:
+```
+<div style="text-align: center; background-color: #$aqi($current($data_binding='aqi_binding').aqi_pm2_5_category).color;" >
+    $current($data_binding='aqi_binding').aqi_pm2_5 <br/>
+    $aqi($current($data_binding='aqi_binding').aqi_pm2_5_category).category
+</div>
+```
 
-* The units:
-
+## Units
 AQIs are dimensionless.
 
 You can also graph these values by adding the appropriate
-configuration to your skin.conf file:
-
+configuration to your `skin.conf` file:
+```
     [[[dayaqi]]]
         data_binding = aqi_binding
         [[[[aqi_pm2_5]]]]
+```
 
-The values stored in the database are as follows:
-
+The values stored in the database are:
 ```
 aqi_composite,
 aqi_composite_category,

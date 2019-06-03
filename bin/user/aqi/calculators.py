@@ -66,7 +66,7 @@ def validate_number_of_observations(observations, duration_in_secs, obs_frequenc
 def linear_interoplate(breakpoint, obs_mean):
     numerator = (obs_mean - breakpoint['low_obs']) * (breakpoint['high_aqi'] - breakpoint['low_aqi'])
     denominator = breakpoint['high_obs'] - breakpoint['low_obs']
-    return int(round((numerator / denominator) + breakpoint['low_aqi']))
+    return int(round((numerator / float(denominator)) + breakpoint['low_aqi']))
 
 def arithmetic_mean(observations):
     '''Calculates the arithmetic mean from a set of observations.
