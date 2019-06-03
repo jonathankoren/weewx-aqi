@@ -87,13 +87,13 @@ To make use of the plugin you will need to modify the templates in
 the aqi.sdb file.
 
 ### Examples:
-#### The current value: 
+#### The Current Value
 `$latest($data_binding='aqi_binding').aqi_pm2_5`
 
-#### The maximum value today:
+#### Maximum Value Today
 `$day($data_binding='aqi_binding').aqi_pm2_5.max`
 
-#### The time today when the maximum value occurred:
+#### Time Today When The Maximum Value Occurred
 `$day($data_binding='aqi_binding').aqi_pm2_5.maxtime`
 
 #### Colors and Categories
@@ -126,7 +126,7 @@ configuration to your `skin.conf` file:
         [[[[aqi_pm2_5]]]]
 ```
 
-The values stored in the database are as follows:
+The values stored in the database are:
 ```
 aqi_composite,
 aqi_composite_category,
