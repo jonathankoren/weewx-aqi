@@ -1,6 +1,6 @@
 # weewx-aqi
 
-Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+Copyright 2018, 2019 - Jonathan Koren <jonathan@jonathankoren.com>
 
 ## What is it?
 
@@ -59,8 +59,8 @@ The configurable schema columns are:
 * `nh3`:  *optional* Ammonia
 * `pb`:  *optional* Lead
 
-All air quality indicies, with the exception of Canada's, can be calculated
-for a single pollutant. Additionally, all air quality indicies can also
+All air quality indices, with the exception of Canada's, can be calculated
+for a single pollutant. Additionally, all air quality indices can also
 calculate composite index. However, this index will only be calculated if
 readings are available for all of the requisite components.
 
@@ -94,21 +94,31 @@ the aqi.sdb file.
 ### Examples:
 * The current value:
 
-```$latest('aqi_binding').aqi_pm2_5.formatted```
+```$latest($data_binding='aqi_binding').aqi_pm2_5.formatted```
 
 * The maximum value today:
 
-```$day('aqi_binding').aqi_pm2_5.max.formatted```
+```$day($data_binding='aqi_binding').aqi_pm2_5.max.formatted```
 
 * The time today when the maximum value occurred:
 
-```$day('aqi_binding').aqi_pm2_5.maxtime```
+```$day($data_binding='aqi_binding').aqi_pm2_5.maxtime```
 
 
 AQIs have categorical labels associated with the AQI values. The index of the
-current category is available via ```$latest('aqi_binding').aqi_pm2_5_category```.
-From this, the label and color category can be found via
-```(hex_color, category_label) = service.aqi_standard.interpret_aqi_index(index)```
+current category is available via ```$latest($data_binding='aqi_binding').aqi_pm2_5_category```.
+The AQI color and category can be found using wrapping the index with the`$aqi`
+Cheetah template. Add to your `skin.conf`:
+[CheetahGenerator]
+    search_list_extensions = user.aqi.service.AqiSearchList
+
+And then in your template (e.g. `index.html.tmpl`), you can add something
+similar to this example `<DIV>`, that illustrates display the AQI value,
+category, and color:
+```<div style="text-align: center; background-color: #$aqi($current($data_binding='aqi_binding').aqi_pm2_5_category).color;" >
+    $current($data_binding='aqi_binding').aqi_pm2_5 <br/>
+    $aqi($current($data_binding='aqi_binding').aqi_pm2_5_category).category
+</div>```
 
 * The units:
 
