@@ -1,5 +1,5 @@
 # weewx-aqi
-# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018, 2019 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import sys
@@ -8,10 +8,12 @@ import time
 
 import weeutil.weeutil
 import weewx
+import weewx.cheetahgenerator
 import weewx.engine
 import weewx.units
 
 import calculators
+import standards
 import units
 
 schema = [
@@ -344,3 +346,26 @@ class AqiService(weewx.engine.StdService):
             self.aqi_dbm.addRecord(record)
         else:
             syslog.syslog(syslog.LOG_ERR, "AqiService: not storing record for dateTime %d" % (now))
+
+
+class AqiSearchList(weewx.cheetahgenerator.SearchList):
+    '''Class that implements the '$aqi' tag in cheetah templates'''
+    def __init__(self, generator):
+        weewx.cheetahgenerator.SearchList.__init__(self, generator)
+        config_dict = generator.config_dict
+
+        # configure the aqi standard
+        standard_config_dict = config_dict['AqiService']['standard']
+        fq_standard = standard_config_dict['standard']
+        standard_path = '.'.join(fq_standard.split('.')[:-1])
+        standard_name = fq_standard.split('.')[-1]
+        __import__(standard_path)
+        standard_class = getattr(sys.modules[standard_path], standard_name)
+        self.aqi_standard = standard_class(int(config_dict['StdArchive']['archive_interval']))
+
+        self.search_list_extension = {
+            'aqi': lambda x: self.aqi_standard.interpret_aqi_index(x.raw)
+        }
+
+    def get_extension_list(self, timespan, db_lookup):
+        return [self.search_list_extension]
