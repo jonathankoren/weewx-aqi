@@ -4,7 +4,7 @@ Legend explained
 
 Circles on the map represent the locations of air quality monitoring stations. The colour corresponds to the air quality index at the given hour at that station. Note that it does not reflect the annual average measured at the air quality situation which may differ significantly (see Info).
 
-Measurements of up to five key pollutants supported by modelled data determine the index level that describes the current air quality situation at each monitoring station. The index corresponds to the poorest level for any of five pollutants according to the following scheme.
+Measurements of up to five key pollutants supported by modeled data determine the index level that describes the current air quality situation at each monitoring station. The index corresponds to the poorest level for any of five pollutants according to the following scheme.
 
 Pollutant 	Index level
 (based on pollutant concentrations in µg/m3)
@@ -18,7 +18,7 @@ Sulphur dioxide (SO2) 	            0-100 	100-200   200-350 	350-500 	500-1250
 The colour scheme is provided to give information on the status of the air quality at each station. Colours are either full or semi transparent:
 
     Full colour (with a white border*): the minimum number of pollutants requirement needed to calculate the index are met (see Info for details).
-    ii. Semi-transparent colour: the minimum number of polllutants requirements to calculate the index are not met – the colour indicates the air quality index as calculated for the available sub-set of pollutants only.
+    ii. Semi-transparent colour: the minimum number of pollutants requirements to calculate the index are not met – the colour indicates the air quality index as calculated for the available sub-set of pollutants only.
 
 The grey dots indicate stations for which: no sufficient data or no data have been reported to allow the index to be calculated.
 
@@ -54,7 +54,7 @@ Please note that the air quality index is based on the up-to-date air quality re
 The air quality index does not aim at compliance checking against air quality standards and can not be considered for this purpose.
 Methodology
 
-The Index uses ‘up-to-date’ air quality data officially reported every hour by the EEA’s member countries, and complemented, as necessary, by modelled air quality data from the European Union’s Copernicus Atmospheric Monitoring Service (CAMS) (see ‘Missing data and gap filling’ below). Concentrations of up to five key pollutants determine the index level that describes the current air quality situation at each monitoring station. The index corresponds to the poorest level for any of five pollutants according to the following scheme.
+The Index uses ‘up-to-date’ air quality data officially reported every hour by the EEA’s member countries, and complemented, as necessary, by modeled air quality data from the European Union’s Copernicus Atmospheric Monitoring Service (CAMS) (see ‘Missing data and gap filling’ below). Concentrations of up to five key pollutants determine the index level that describes the current air quality situation at each monitoring station. The index corresponds to the poorest level for any of five pollutants according to the following scheme.
 Traffic stations
 
 SO2 concentrations can be high only in much localized areas, and ozone concentrations are normally very low at traffic stations. Therefore, the index for these stations should be ideally calculated only with data (either measured or derived from CAMS models) for both NO2 and PM (i.e. either PM2.5 or PM10 or both).
@@ -69,7 +69,7 @@ Averaging time
 For NO2, O3 and SO2 , hourly concentrations of NO2, O3 and SO2 are used for the calculation of the index. For PM10 and PM2.5, the 24-hour running means, based on the last 24 hours, are considered for the calculation of the index.
 Missing data and gap filling
 
-When data from countries has not been reported for a given hour, values are approximated ('gap-filled') using CAMS modelled air quality data. In such cases, it is clearly marked within the Index as being 'modelled data'.
+When data from countries has not been reported for a given hour, values are approximated ('gap-filled') using CAMS modeled air quality data. In such cases, it is clearly marked within the Index as being 'modeled data'.
 
 The gap-filling method used depends on the pollutant, i.e.
 
@@ -77,11 +77,11 @@ The gap-filling method used depends on the pollutant, i.e.
     for O3 by using a multiplicative method;
     for SO2 no gap filling is performed
 
-Difference method: the value is approximated by taking the CAMS modelled value, and adding or subtracting a correction difference. This correction is the average difference between previously measured values and the CAMS modelled value for the same hour for at least three of the four previous days
+Difference method: the value is approximated by taking the CAMS modeled value, and adding or subtracting a correction difference. This correction is the average difference between previously measured values and the CAMS modeled value for the same hour for at least three of the four previous days
 
-Multiplicative method: the value is approximated by taking the CAMS modelled value, and applying a correction factor. This correction is the average ratio between the previously measured values and the CAMS modelled values for the same hour for at least three of the four previous days.
+Multiplicative method: the value is approximated by taking the CAMS modeled value, and applying a correction factor. This correction is the average ratio between the previously measured values and the CAMS modeled values for the same hour for at least three of the four previous days.
 
-In cases where there no measured values for the same hour over three of the four previous days, the index value for the given pollutant is not calculated and is reported as 'no data'.
+In cases where there are no measured values for the same hour over three of the four previous days, the index value for the given pollutant is not calculated and is reported as 'no data'.
 Bands of concentrations and index levels
 Pollutant 	Index level
 (based on pollutant concentrations in µg/m3)

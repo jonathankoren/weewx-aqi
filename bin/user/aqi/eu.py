@@ -1,9 +1,10 @@
 # weewx-aqi
-# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018, 2019 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import datetime
 import operator
+import syslog
 
 import calculators
 import standards
@@ -22,7 +23,7 @@ def eu_mean(observations, obs_frequency_in_sec, actual_time_range_seconds, requi
     # we have to do validate the actual time range, as upstream only
     # validated the much larger fake range
     now_epoch_seconds = observations[0][0]
-    min_samples_per_hour = calculators.HOUR / obs_frequency_in_sec * required_observation_ratio
+    min_samples_per_hour = int(calculators.HOUR / float(obs_frequency_in_sec) * required_observation_ratio)
 
     # calculate the hourly averages, flagging any hours that don't have enough
     # samples
