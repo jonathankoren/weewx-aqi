@@ -364,7 +364,7 @@ class AqiSearchList(weewx.cheetahgenerator.SearchList):
         self.aqi_standard = standard_class(int(config_dict['StdArchive']['archive_interval']))
 
         self.search_list_extension = {
-            'aqi': lambda x: self.aqi_standard.interpret_aqi_index(x.raw)
+            'aqi': lambda x: self.aqi_standard.interpret_aqi_index(int(x.raw))
         }
 
     def get_extension_list(self, timespan, db_lookup):
