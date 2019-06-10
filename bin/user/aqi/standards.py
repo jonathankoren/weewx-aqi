@@ -1,5 +1,5 @@
 # weewx-aqi
-# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018, 2019 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 from abc import ABCMeta, abstractmethod
@@ -68,4 +68,7 @@ class AqiStandards:
     def interpret_aqi_index(self, aqi_index):
         '''Returns the color and category name associated with the pollutant
         with the aqi_index (not aqi value).'''
-        return (self.colors[aqi_index], self.categories[aqi_index])
+        return {
+            'color': self.colors[aqi_index],
+            'category': self.categories[aqi_index]
+        }
