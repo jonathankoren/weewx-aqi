@@ -68,7 +68,12 @@ class AqiStandards:
     def interpret_aqi_index(self, aqi_index):
         '''Returns the color and category name associated with the pollutant
         with the aqi_index (not aqi value).'''
+        if aqi_index is None:
+            return {
+                'color': 'None',
+                'category': 'None'
+            }
         return {
-            'color': self.colors[aqi_index],
-            'category': self.categories[aqi_index]
+            'color': self.colors[int(aqi_index)],
+            'category': self.categories[int(aqi_index)]
         }
