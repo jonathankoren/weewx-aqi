@@ -1,10 +1,10 @@
 # weewx-aqi
-# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import weewx.units
 
-import calculators
+from . import calculators
 
 # molar masses (aka mollecular mass) in units of grams per mole
 MOLAR_MASSES = {

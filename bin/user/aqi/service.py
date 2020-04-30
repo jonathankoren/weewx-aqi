@@ -1,5 +1,5 @@
 # weewx-aqi
-# Copyright 2018, 2019 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import sys
@@ -12,9 +12,9 @@ import weewx.cheetahgenerator
 import weewx.engine
 import weewx.units
 
-import calculators
-import standards
-import units
+from . import calculators
+from . import standards
+from . import units
 
 schema = [
     ('dateTime', 'INTEGER NOT NULL PRIMARY KEY'),
@@ -43,7 +43,7 @@ schema = [
 
 def _trim_dict(d):
     '''Removes all entries in the dict where value is None.'''
-    for (k, v) in d.items():
+    for (k, v) in list(d.items()):
         if v is None:
             d.pop(k)
     return d
@@ -140,7 +140,7 @@ class AqiService(weewx.engine.StdService):
 
         # confirm the sensor schema
         dbcols_set = set(self.sensor_dbm.connection.columnsOf(self.sensor_dbm.table_name))
-        for needle in self._get_polution_sensor_columns().values():
+        for needle in list(self._get_polution_sensor_columns().values()):
             if (needle != None) and (needle not in dbcols_set):
                 raise Exception('air sensor schema mismatch. %s not found in %s' % (needle, dbcols_set))
 
@@ -189,7 +189,7 @@ class AqiService(weewx.engine.StdService):
                 if abs(delta) < epsilon:
                     # close enough.
                     d = dict.copy(po)
-                    for (k, v) in wo.items():
+                    for (k, v) in list(wo.items()):
                         if k not in d:
                             d[k] = v
                     joined.append(d)
@@ -232,7 +232,7 @@ class AqiService(weewx.engine.StdService):
         pollution_sensor_real_cols = []
         pollution_sensor_as_cols = []
         first = True
-        for (as_col, real_col) in self._get_polution_sensor_columns().items():
+        for (as_col, real_col) in list(self._get_polution_sensor_columns().items()):
             pollution_sensor_real_cols.append(real_col)
             pollution_sensor_as_cols.append(as_col)
             if not first:
@@ -253,7 +253,7 @@ class AqiService(weewx.engine.StdService):
             # the sensor has the proper confiruration, so use it
             sql = 'SELECT '
             first = True
-            for (as_col, real_col) in weather_cols.items():
+            for (as_col, real_col) in list(weather_cols.items()):
                 weather_observations_real_cols.append(real_col)
                 weather_observations_as_cols.append(as_col)
                 if not first:
@@ -313,7 +313,7 @@ class AqiService(weewx.engine.StdService):
                 press_pascals = weewx.units.conversionDict[pressure_unit]['hPa'](press_pascals)
             press_pascals *= 100
 
-            for (pollutant, required_unit) in self.aqi_standard.get_pollutants().items():
+            for (pollutant, required_unit) in list(self.aqi_standard.get_pollutants().items()):
                 if pollutant in row:
                     # convert the observed pollution units to what's required by the standard
                     obs_unit = get_unit_from_column(as_column_to_real_column[pollutant], row['usUnits'])
@@ -327,7 +327,7 @@ class AqiService(weewx.engine.StdService):
             'aqi_standard': self.aqi_standard.guid,
         }
         all_pollutants_available = True
-        for (pollutant, required_unit) in self.aqi_standard.get_pollutants().items():
+        for (pollutant, required_unit) in list(self.aqi_standard.get_pollutants().items()):
             if pollutant in joined[0]:
                 try:
                     (record['aqi_' + pollutant], record['aqi_' + pollutant + '_category']) = \

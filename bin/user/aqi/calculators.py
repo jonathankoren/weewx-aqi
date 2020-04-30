@@ -1,5 +1,5 @@
 # weewx-aqi
-# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 from abc import ABCMeta, abstractmethod
@@ -77,8 +77,7 @@ def arithmetic_mean(observations):
         obs_mean = obs_mean + obs[1]
     return obs_mean / float(len(observations))
 
-class AqiCalculator:
-    __metaclass__ = ABCMeta
+class AqiCalculator(metaclass=ABCMeta):
     def __init__(self, **kwargs):
         '''Creates a new AqiCalculator. Takes the following keyword arguments:
             data_cleaner
