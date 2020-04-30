@@ -128,6 +128,12 @@ class AqiService(weewx.engine.StdService):
         self.sensor_o3_column = sensor_config_dict.get('o3', None)
         self.sensor_nh3_column = sensor_config_dict.get('nh3', None)
         self.sensor_pb_column = sensor_config_dict.get('pb', None)
+        self.sensor_dbm = self.engine.db_binder.get_manager(data_binding=sensor_config_dict['data_binding'], initialize=True)
+
+        # configure the main weather sensor if needed
+        self.use_weather_temp = (self.sensor_temp_column is None)
+        self.use_weather_pressure = (self.sensor_pressure_column is None)
+        self.weather_us_units = weewx.units.unit_constants[config_dict['StdConvert']['target_unit']]
 
         # get the sensor binding
         self.sensor_dbm = self.engine.db_binder.get_manager(data_binding=sensor_config_dict['data_binding'], initialize=False)
@@ -266,7 +272,10 @@ class AqiService(weewx.engine.StdService):
             # See https://github.com/weewx/weewx/wiki/Barometer,-pressure,-and-altimeter
             weather_observations_real_cols = [ 'dateTime', 'outTemp', 'pressure', 'usUnits' ]
             weather_observations_as_cols = [ 'dateTime', 'outTemp', 'pressure', 'weather_usUnits' ]
-            sql = 'SELECT ' + ','.join(weather_observations_real_cols) + ' FROM archive WHERE dateTime >= ? AND dateTime <= ? ORDER BY dateTime ASC'
+            sql = 'SELECT ' + ','.join(weather_observations_real_cols) + ' FROM archive WHERE dateTime >= ? AND %s <= ? ORDER BY %s ASC' % (
+                self.sensor_epoch_seconds_column,
+                self.sensor_epoch_seconds_column,
+                self.sensor_epoch_seconds_column)
             weather_observations = self.sensor_dbm.genSql(sql, (start_time, end_time))
 
         # we need to be able to map back to underlying column for unit conversion
@@ -358,7 +367,7 @@ class AqiSearchList(weewx.cheetahgenerator.SearchList):
         self.aqi_standard = standard_class(int(config_dict['StdArchive']['archive_interval']))
 
         self.search_list_extension = {
-            'aqi': lambda x: self.aqi_standard.interpret_aqi_index(int(x.raw))
+            'aqi': lambda x: self.aqi_standard.interpret_aqi_index(x.raw)
         }
 
     def get_extension_list(self, timespan, db_lookup):
