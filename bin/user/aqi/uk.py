@@ -1,11 +1,11 @@
 # weewx-aqi
-# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import operator
 
-import calculators
-import standards
+from . import calculators
+from . import standards
 
 # colors taken from https://en.wikipedia.org/wiki/Air_quality_index#United_Kingdom
 COLOR_1  = 'CCFFCC'

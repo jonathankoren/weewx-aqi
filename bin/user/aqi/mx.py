@@ -1,13 +1,13 @@
 # -*- coding: utf-8-*-
 
 # weewx-aqi
-# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import operator
 
-import calculators
-import standards
+from . import calculators
+from . import standards
 
 GREEN = '00e400'
 YELLOW = 'ffff00'

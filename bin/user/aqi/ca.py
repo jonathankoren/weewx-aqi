@@ -1,10 +1,10 @@
 # weewx-aqi
-# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
-import calculators
+from . import calculators
 import math
-import standards
+from . import standards
 
 # Colors defiend by https://www3.epa.gov/airnow/aqi-technical-assistance-document-may2016.pdf
 COLOR_1 = '00CCFF'

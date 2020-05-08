@@ -1,15 +1,14 @@
 # weewx-aqi
-# Copyright 2018, 2019 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 from abc import ABCMeta, abstractmethod
 
-import calculators
+from . import calculators
 
 # last used guid is 6
 
-class AqiStandards:
-    __metaclass__ = ABCMeta
+class AqiStandards(metaclass=ABCMeta):
     def __init__(self, colors, categories, guid):
         '''Creates an AqiStandard with the specified color and categorical scales.
         self.calculators is initalized to an empty dictionary. It is up to
@@ -23,7 +22,7 @@ class AqiStandards:
     def max_duration(self):
         '''Returns the maximum duration window for the calculator.'''
         max = -1
-        for c in self.calculators.values():
+        for c in list(self.calculators.values()):
             if c.max_duration() > max:
                 max = c.max_duration()
         return max
@@ -32,7 +31,7 @@ class AqiStandards:
         '''Returns a map of the pollutants monitored by the standard to their
         required units.'''
         d = {}
-        for (pollutant, calculator) in self.calculators.items():
+        for (pollutant, calculator) in list(self.calculators.items()):
             d[pollutant] = calculator.unit
         return d
 

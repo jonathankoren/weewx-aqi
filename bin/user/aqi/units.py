@@ -1,10 +1,10 @@
 # weewx-aqi
-# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import weewx.units
 
-import calculators
+from . import calculators
 
 # molar masses (aka mollecular mass) in units of grams per mole
 MOLAR_MASSES = {
@@ -89,8 +89,8 @@ weewx.units.default_unit_format_dict['air_quality_index'] = '%d'
 weewx.units.default_unit_label_dict['air_quality_index'] = '' # unitless
 
 # unit conversion
-weewx.units.conversionDict['litre']['meter_cubed'] = lambda x: x / 1000.0
-weewx.units.conversionDict['meter_cubed'] = { 'litre': lambda x: x * 1000.0 }
+weewx.units.conversionDict['liter']['meter_cubed'] = lambda x: x / 1000.0
+weewx.units.conversionDict['meter_cubed'] = { 'liter': lambda x: x * 1000.0 }
 weewx.units.conversionDict['part_per_billion'] = { 'part_per_million': lambda x: x * 1000.0 },
 weewx.units.conversionDict['part_per_million'] = { 'part_per_billion': lambda x: x / 1000.0 },
 weewx.units.conversionDict['microgram_per_meter_cubed'] = { 'milligram_per_meter_cubed': lambda x: x / 1000.0 },
