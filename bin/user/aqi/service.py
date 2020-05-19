@@ -272,7 +272,7 @@ class AqiService(weewx.engine.StdService):
             # See https://github.com/weewx/weewx/wiki/Barometer,-pressure,-and-altimeter
             weather_observations_real_cols = [ 'dateTime', 'outTemp', 'pressure', 'usUnits' ]
             weather_observations_as_cols = [ 'dateTime', 'outTemp', 'pressure', 'weather_usUnits' ]
-            sql = 'SELECT ' + ','.join(weather_observations_real_cols) + ' FROM archive WHERE dateTime >= ? AND %s <= ? ORDER BY %s ASC' % (
+            sql = 'SELECT ' + ','.join(weather_observations_real_cols) + ' FROM archive WHERE %s >= ? AND %s <= ? ORDER BY %s ASC' % (
                 self.sensor_epoch_seconds_column,
                 self.sensor_epoch_seconds_column,
                 self.sensor_epoch_seconds_column)
