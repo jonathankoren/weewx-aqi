@@ -212,7 +212,7 @@ def nowcast_mean(observations, obs_frequency_in_sec, required_observation_ratio,
     # calculate hourly means
     start_time = observations[0][0]
     for obs in observations:
-        index = (start_time - obs[0]) / calculators.HOUR
+        index = int((start_time - obs[0]) / calculators.HOUR)
         hourly_samples[index] = hourly_samples[index] + 1
         hourly_means[index] = hourly_means[index] + obs[1]
 
