@@ -55,7 +55,7 @@ def _make_dict(row, colnames):
     return d
 
 def get_unit_from_column(obs_column, usUnits):
-    pollutant_group = weewx.units.obs_group_dict[obs_column]
+    pollutant_group = weewx.units.obs_group_dict.get(obs_column)
     obs_unit = None
     if usUnits == weewx.US:
         obs_unit = weewx.units.USUnits[pollutant_group]
@@ -316,7 +316,11 @@ class AqiService(weewx.engine.StdService):
             for (pollutant, required_unit) in list(self.aqi_standard.get_pollutants().items()):
                 if pollutant in row:
                     # convert the observed pollution units to what's required by the standard
-                    obs_unit = get_unit_from_column(as_column_to_real_column[pollutant], row['usUnits'])
+                    try:
+                        obs_unit = get_unit_from_column(as_column_to_real_column[pollutant], row['usUnits'])
+                    except KeyError:
+                        syslog.syslog(syslog.LOG_WARNING, "AqiService: AQI calculation could not find unit for column %s, assuming %s" % (as_column_to_real_column[pollutant], required_unit)) 
+                        obs_unit = required_unit
                     joined[i][pollutant] = units.convert_pollutant_units(pollutant, row[pollutant], obs_unit, required_unit, temp_kelvin, press_pascals)
 
         # calculate the AQIs

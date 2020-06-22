@@ -25,7 +25,7 @@ class AirQualityIndex(standards.AqiStandards):
         super(AirQualityIndex, self).__init__(
             [GREEN, YELLOW, ORANGE, RED, PURPLE, MAROON],
             ['Good', 'Moderate', 'Unhealthy for Sensitive Groups', 'Unhealthy', 'Very Unhealthy', 'Hazardous'],
-            5)
+            standards.US_AQI_GUID)
 
         # US doesn't specify number of observations required. lets go with 75% since that's the UK's standard
         self.calculators[calculators.PM2_5] = calculators.AqiTable()
@@ -271,7 +271,7 @@ class NowCast(standards.AqiStandards):
         super(NowCast, self).__init__(
             [GREEN, YELLOW, ORANGE, RED, PURPLE, MAROON],
             ['Good', 'Moderate', 'Unhealthy for Sensitive Groups', 'Unhealthy', 'Very Unhealthy', 'Hazardous'],
-            6)
+            standards.US_NOWCAST_GUID)
 
         # US doesn't specify number of observations required. lets go with 75% since that's the UK's standard
         self.calculators[calculators.PM2_5] = calculators.AqiTable()

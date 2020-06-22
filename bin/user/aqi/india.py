@@ -28,7 +28,7 @@ class NationalAirQualityIndex(standards.AqiStandards):
         super(NationalAirQualityIndex, self).__init__(
             [GREEN, LIGHT_GREEN, PINK, ORANGE, RED, DARK_RED],
             ['Good', 'Satisfactory', 'Moderately Polluted', 'Poor', 'Very Poor', 'Severe'],
-            2)
+            standards.IN_NAQI_GUID)
 
         self.calculators[calculators.PM10_0] = calculators.AqiTable()
         self.calculators[calculators.PM10_0].add_breakpoint_table(calculators.BreakpointTable(

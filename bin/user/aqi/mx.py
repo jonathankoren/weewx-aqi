@@ -25,7 +25,7 @@ class IndiceMetropolitanoCalidadAire(standards.AqiStandards):
         super(IndiceMetropolitanoCalidadAire, self).__init__(
             [GREEN, YELLOW, ORANGE, RED, PURPLE],
             ['Good', 'Regular', 'Bad', 'Very Bad', 'Extremely Bad'],
-            3)
+            standards.MX_IMCA_GUID)
         self.obs_frequency_in_sec = obs_frequency_in_sec
 
         self.calculators[calculators.O3] = calculators.AqiTable()

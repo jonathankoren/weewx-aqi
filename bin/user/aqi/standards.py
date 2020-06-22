@@ -6,7 +6,13 @@ from abc import ABCMeta, abstractmethod
 
 from . import calculators
 
-# last used guid is 6
+CA_AQHI_GUID = 1
+IN_NAQI_GUID = 2
+MX_IMCA_GUID = 3
+UK_DAQI_GUID = 4
+US_AQI_GUID = 5
+US_NOWCAST_GUID = 6
+EU_AQI_GUID = 7
 
 class AqiStandards(metaclass=ABCMeta):
     def __init__(self, colors, categories, guid):
