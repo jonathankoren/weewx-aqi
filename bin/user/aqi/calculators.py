@@ -5,6 +5,8 @@
 from abc import ABCMeta, abstractmethod
 import operator
 
+from six import with_metaclass
+
 # number of seconds
 MINUTE = 60
 HOUR = 3600
@@ -77,7 +79,7 @@ def arithmetic_mean(observations):
         obs_mean = obs_mean + obs[1]
     return obs_mean / float(len(observations))
 
-class AqiCalculator(metaclass=ABCMeta):
+class AqiCalculator(with_metaclass(ABCMeta)):
     def __init__(self, **kwargs):
         '''Creates a new AqiCalculator. Takes the following keyword arguments:
             data_cleaner

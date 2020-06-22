@@ -4,6 +4,8 @@
 
 from abc import ABCMeta, abstractmethod
 
+from six import with_metaclass
+
 from . import calculators
 
 CA_AQHI_GUID = 1
@@ -14,7 +16,7 @@ US_AQI_GUID = 5
 US_NOWCAST_GUID = 6
 EU_AQI_GUID = 7
 
-class AqiStandards(metaclass=ABCMeta):
+class AqiStandards(with_metaclass(ABCMeta)):
     def __init__(self, colors, categories, guid):
         '''Creates an AqiStandard with the specified color and categorical scales.
         self.calculators is initalized to an empty dictionary. It is up to
