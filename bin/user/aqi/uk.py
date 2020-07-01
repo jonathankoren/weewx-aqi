@@ -1,11 +1,11 @@
 # weewx-aqi
-# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import operator
 
-import calculators
-import standards
+from . import calculators
+from . import standards
 
 # colors taken from https://en.wikipedia.org/wiki/Air_quality_index#United_Kingdom
 COLOR_1  = 'CCFFCC'
@@ -26,7 +26,7 @@ class DailyAirQualityIndex(standards.AqiStandards):
         super(DailyAirQualityIndex, self).__init__(
             [COLOR_1, COLOR_2, COLOR_3, COLOR_4, COLOR_5, COLOR_6, COLOR_7, COLOR_8, COLOR_9, COLOR_10],
             ['Low', 'Low', 'Low', 'Moderate', 'Moderate', 'Moderate', 'High', 'High', 'High', 'Very High'],
-            4)
+            standards.UK_DAQI_GUID)
 
         self.calculators[calculators.O3] = calculators.AqiTable()
         self.calculators[calculators.O3].add_breakpoint_table(calculators.BreakpointTable(

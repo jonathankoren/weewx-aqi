@@ -5,13 +5,15 @@
 # License: GPL 3
 
 import argparse
+import datetime
 import sys
 
+import weecfg
 import weewx
 import weewx.engine
 import user.aqi.service
 import weeutil.weeutil
-import schemas
+import schemas.wview
 
 
 parser = argparse.ArgumentParser(
@@ -31,7 +33,7 @@ parser.add_argument('--end_time',
 args = parser.parse_args()
 
 
-config = weewx.engine.getConfiguration(args.config_file)
+config_path, config = weecfg.read_config(args.config_file, [])
 engine = weewx.engine.StdEngine(config)
 service = user.aqi.service.AqiService(engine, config)
 
@@ -39,16 +41,15 @@ wx_db = engine.db_binder.get_manager(data_binding='wx_binding', initialize=True)
 wx_column_names = [x[0] for x in schemas.wview.schema]
 num_wx_cols = len(wx_column_names)
 
-
 sql = 'SELECT * FROM archive WHERE dateTime >= %d AND datetime < %d ORDER BY dateTime ASC' % (args.start_time, args.end_time)
-print 'Starting backfill from %d' % (args.start_time)
+print('Starting backfill from %d %s' % (args.start_time, str(datetime.datetime.fromtimestamp(args.start_time))))
 total_intervals = 0
 for row in wx_db.genSql(sql):
     record = {}
     for i in range(num_wx_cols):
         record[wx_column_names[i]] = row[i]
     total_intervals += record['interval']
-    if total_intervals % 1440 == 0:
-        print 'processed %d days...' % (total_intervals / 1440)
+    if (total_intervals % (1440 * 30)) == 0:
+        print('processed %d days... %d %s' % (total_intervals / 1440,  record['dateTime'], str(datetime.datetime.fromtimestamp(record['dateTime']))))
     event = weewx.Event(weewx.NEW_ARCHIVE_RECORD, record=record)
     service.new_archive_record(event)

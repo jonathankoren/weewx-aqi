@@ -1,5 +1,5 @@
 # weewx-aqi
-# Copyright 2018, 2019 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import sys
@@ -12,9 +12,9 @@ import weewx.cheetahgenerator
 import weewx.engine
 import weewx.units
 
-import calculators
-import standards
-import units
+from . import calculators
+from . import standards
+from . import units
 
 schema = [
     ('dateTime', 'INTEGER NOT NULL PRIMARY KEY'),
@@ -43,19 +43,21 @@ schema = [
 
 def _trim_dict(d):
     '''Removes all entries in the dict where value is None.'''
-    for (k, v) in d.items():
+    for (k, v) in list(d.items()):
         if v is None:
             d.pop(k)
     return d
 
 def _make_dict(row, colnames):
+    if type(row) == dict:
+        return row
     d = {}
     for i in range(len(row)):
         d[colnames[i]] = row[i]
     return d
 
 def get_unit_from_column(obs_column, usUnits):
-    pollutant_group = weewx.units.obs_group_dict[obs_column]
+    pollutant_group = weewx.units.obs_group_dict.get(obs_column)
     obs_unit = None
     if usUnits == weewx.US:
         obs_unit = weewx.units.USUnits[pollutant_group]
@@ -134,13 +136,11 @@ class AqiService(weewx.engine.StdService):
         self.use_weather_temp = (self.sensor_temp_column is None)
         self.use_weather_pressure = (self.sensor_pressure_column is None)
         self.weather_us_units = weewx.units.unit_constants[config_dict['StdConvert']['target_unit']]
-
-        # get the sensor binding
-        self.sensor_dbm = self.engine.db_binder.get_manager(data_binding=sensor_config_dict['data_binding'], initialize=False)
+        self.weather_dbm = self.engine.db_binder.get_manager()
 
         # confirm the sensor schema
         dbcols_set = set(self.sensor_dbm.connection.columnsOf(self.sensor_dbm.table_name))
-        for needle in self._get_polution_sensor_columns().values():
+        for needle in list(self._get_polution_sensor_columns().values()):
             if (needle != None) and (needle not in dbcols_set):
                 raise Exception('air sensor schema mismatch. %s not found in %s' % (needle, dbcols_set))
 
@@ -174,9 +174,7 @@ class AqiService(weewx.engine.StdService):
             'pressure': self.sensor_pressure_column,
         })
 
-    def _join_sensor_results(self, pollutant_observations, pollutant_cols,
-        weather_observations, weather_cols,
-        epsilon):
+    def _join_sensor_results(self, pollutant_observations, pollutant_cols, weather_observations, weather_cols, epsilon):
         '''Returns an array containing the join of the pollutant and weather
         observations. All joined observations must have occured within epsilon
         seconds of each other.'''
@@ -187,10 +185,10 @@ class AqiService(weewx.engine.StdService):
             while True:
                 delta = po['dateTime'] - wo['dateTime']
                 if abs(delta) < epsilon:
-                    # close enough. M
+                    # close enough.
                     d = dict.copy(po)
-                    for (k, v) in wo.items():
-                        if k not in d:
+                    for (k, v) in list(wo.items()):
+                        if k not in d or d[k] is None:
                             d[k] = v
                     joined.append(d)
                     po = _make_dict(next(pollutant_observations), pollutant_cols)
@@ -203,6 +201,7 @@ class AqiService(weewx.engine.StdService):
                     po = _make_dict(next(pollutant_observations), pollutant_cols)
         except StopIteration:
             pass
+
         return joined
 
     def shutDown(self):
@@ -232,7 +231,7 @@ class AqiService(weewx.engine.StdService):
         pollution_sensor_real_cols = []
         pollution_sensor_as_cols = []
         first = True
-        for (as_col, real_col) in self._get_polution_sensor_columns().items():
+        for (as_col, real_col) in list(self._get_polution_sensor_columns().items()):
             pollution_sensor_real_cols.append(real_col)
             pollution_sensor_as_cols.append(as_col)
             if not first:
@@ -253,27 +252,35 @@ class AqiService(weewx.engine.StdService):
             # the sensor has the proper confiruration, so use it
             sql = 'SELECT '
             first = True
-            for (as_col, real_col) in weather_cols.items():
+            for (as_col, real_col) in list(weather_cols.items()):
                 weather_observations_real_cols.append(real_col)
                 weather_observations_as_cols.append(as_col)
                 if not first:
                     sql += ', '
                 sql += real_col + ' AS ' + as_col
                 first = False
-            sql += ' FROM %s WHERE %s >= ? AND %s <= ? ORDER BY %s ASC' % (self.sensor_dbm.table_name,
-                self.sensor_epoch_seconds_column, self.sensor_epoch_seconds_column,
+            sql += ' FROM %s WHERE %s >= ? AND %s <= ? ORDER BY %s ASC' % (
+                self.sensor_dbm.table_name,
+                self.sensor_epoch_seconds_column,
+                self.sensor_epoch_seconds_column,
                 self.sensor_epoch_seconds_column)
             weather_observations = self.sensor_dbm.genSql(sql, (start_time, end_time))
         else:
             # We can't get the weather data from the air sensor, so use the main sensor instead
-            # We're using "raw gauge pressure" `pressure`
             # See https://github.com/weewx/weewx/wiki/Barometer,-pressure,-and-altimeter
-            weather_observations_real_cols = [ 'dateTime', 'outTemp', 'pressure', 'usUnits' ]
+            weather_observations_real_cols = [ 'dateTime', 'outTemp', 'barometer', 'usUnits' ]
             weather_observations_as_cols = [ 'dateTime', 'outTemp', 'pressure', 'weather_usUnits' ]
-            sql = 'SELECT ' + ','.join(weather_observations_real_cols) + ' FROM archive WHERE dateTime >= ? AND %s <= ? ORDER BY %s ASC' % (
-                self.sensor_epoch_seconds_column, self.sensor_epoch_seconds_column,
-                self.sensor_epoch_seconds_column)
-            weather_observations = self.sensor_dbm.genSql(sql, (start_time, end_time))
+            sql = 'SELECT '
+            first = True
+            for i in range(len(weather_observations_real_cols)):
+                real_col = weather_observations_real_cols[i]
+                as_col = weather_observations_as_cols[i]
+                if not first:
+                    sql += ', '
+                sql += real_col + ' AS ' + as_col
+                first = False
+            sql += ' FROM archive WHERE dateTime >= ? AND dateTime <= ? ORDER BY dateTime ASC'
+            weather_observations = self.weather_dbm.genSql(sql, (start_time, end_time))
 
         # we need to be able to map back to underlying column for unit conversion
         as_column_to_real_column = {}
@@ -310,10 +317,14 @@ class AqiService(weewx.engine.StdService):
                 press_pascals = weewx.units.conversionDict[pressure_unit]['hPa'](press_pascals)
             press_pascals *= 100
 
-            for (pollutant, required_unit) in self.aqi_standard.get_pollutants().items():
+            for (pollutant, required_unit) in list(self.aqi_standard.get_pollutants().items()):
                 if pollutant in row:
                     # convert the observed pollution units to what's required by the standard
-                    obs_unit = get_unit_from_column(as_column_to_real_column[pollutant], row['usUnits'])
+                    try:
+                        obs_unit = get_unit_from_column(as_column_to_real_column[pollutant], row['usUnits'])
+                    except KeyError:
+                        syslog.syslog(syslog.LOG_WARNING, "AqiService: AQI calculation could not find unit for column %s, assuming %s" % (as_column_to_real_column[pollutant], required_unit))
+                        obs_unit = required_unit
                     joined[i][pollutant] = units.convert_pollutant_units(pollutant, row[pollutant], obs_unit, required_unit, temp_kelvin, press_pascals)
 
         # calculate the AQIs
@@ -324,13 +335,13 @@ class AqiService(weewx.engine.StdService):
             'aqi_standard': self.aqi_standard.guid,
         }
         all_pollutants_available = True
-        for (pollutant, required_unit) in self.aqi_standard.get_pollutants().items():
+        for (pollutant, required_unit) in list(self.aqi_standard.get_pollutants().items()):
             if pollutant in joined[0]:
                 try:
                     (record['aqi_' + pollutant], record['aqi_' + pollutant + '_category']) = \
                         self.aqi_standard.calculate_aqi(pollutant, required_unit, joined)
-                except ValueError as e:
-                    syslog.syslog(syslog.LOG_ERR, "AqiService: AQI calculation for %s failed: %s" % (pollutant, str(e)))
+                except (ValueError) as e: #, TypeError) as e:
+                    syslog.syslog(syslog.LOG_ERR, "AqiService: %s AQI calculation for %s on %s failed: %s" % (type(e).__name__, pollutant, event.record['dateTime'], str(e)))
                 except NotImplementedError as e:
                     pass
             else:
@@ -339,8 +350,8 @@ class AqiService(weewx.engine.StdService):
             try:
                 (record['aqi_composite'], record['aqi_composite_category']) = \
                     self.aqi_standard.calculate_composite_aqi(self.aqi_standard.get_pollutants(), joined)
-            except ValueError as e:
-                syslog.syslog(syslog.LOG_ERR, "AqiService: AQI calculation for composite failed: %s" % (str(e)))
+            except (ValueError, TypeError) as e:
+                syslog.syslog(syslog.LOG_ERR, "AqiService: %s AQI calculation for composite on %s failed: %s" % (type(e).__name__, event.record['dateTime'], str(e)))
 
         if len(record) > 4:
             self.aqi_dbm.addRecord(record)
@@ -364,7 +375,7 @@ class AqiSearchList(weewx.cheetahgenerator.SearchList):
         self.aqi_standard = standard_class(int(config_dict['StdArchive']['archive_interval']))
 
         self.search_list_extension = {
-            'aqi': lambda x: self.aqi_standard.interpret_aqi_index(int(x.raw))
+            'aqi': lambda x: self.aqi_standard.interpret_aqi_index(x.raw)
         }
 
     def get_extension_list(self, timespan, db_lookup):

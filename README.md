@@ -83,7 +83,7 @@ The default `weewx.conf` block is:
 
 ## Display the data
 To make use of the plugin you will need to modify the templates in
-/etc/weewx/skins/*.tmpl to include references to the new data found in
+`/etc/weewx/skins/*.tmpl` to include references to the new data found in
 the aqi.sdb file.
 
 ### Examples:

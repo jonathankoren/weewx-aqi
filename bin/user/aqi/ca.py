@@ -1,10 +1,10 @@
 # weewx-aqi
-# Copyright 2018 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
-import calculators
+from . import calculators
 import math
-import standards
+from . import standards
 
 # Colors defiend by https://www3.epa.gov/airnow/aqi-technical-assistance-document-may2016.pdf
 COLOR_1 = '00CCFF'
@@ -26,7 +26,7 @@ class AirQualityHealthIndex(standards.AqiStandards):
         super(AirQualityHealthIndex, self).__init__(
             [COLOR_1, COLOR_2, COLOR_3, COLOR_4, COLOR_5, COLOR_6, COLOR_7, COLOR_8, COLOR_9, COLOR_10, COLOR_PLUS],
             ['Low', 'Low', 'Low', 'Moderate', 'Moderate', 'Moderate', 'High', 'High', 'High', 'High', 'Very High'],
-            1)
+            standards.CA_AQHI_GUID)
         self.calculators[calculators.O3] = calculators.ArithmeticMean(
             unit='parts_per_billion',
             duration_in_secs=3 * calculators.HOUR,
