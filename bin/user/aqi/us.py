@@ -221,7 +221,8 @@ def nowcast_mean(observations, obs_frequency_in_sec, required_observation_ratio,
     min_obs = None
     for i in range(len(hourly_means)):
         if hourly_samples[i] >= (calculators.HOUR / obs_frequency_in_sec) * required_observation_ratio:
-            hourly_means[i] = calculators.TRUNCATE_TO_1(hourly_means[i] / float(hourly_samples[i]))
+            if hourly_means[i] is not None:
+                hourly_means[i] = calculators.TRUNCATE_TO_1(hourly_means[i] / float(hourly_samples[i]))
             if (max_obs is None) or (hourly_means[i] > max_obs):
                 max_obs = hourly_means[i]
             if (min_obs is None) or (hourly_means[i] < min_obs):
@@ -235,7 +236,7 @@ def nowcast_mean(observations, obs_frequency_in_sec, required_observation_ratio,
         if hourly_means[i] is None:
             missing = missing + 1
     if missing >= round(min_hours * 0.667):
-        raise ValueError('NowCast AQI could not be calculated for the observations')
+        raise ValueError('NowCast AQI could not be calculated for the observations. Too many missing. Missing %d, which meets or exceeding the limit of %d' % (missing, round(min_hours * 0.667)))
 
     # determine the weights
     weight_factor = 1.0

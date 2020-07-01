@@ -4,6 +4,7 @@
 
 from abc import ABCMeta, abstractmethod
 import operator
+import syslog
 
 from six import with_metaclass
 
@@ -224,8 +225,15 @@ class BreakpointTable(AqiCalculator):
 
         # clean the data
         observations = sorted(observations, key=operator.itemgetter('dateTime'), reverse=True)
+        clean_observations = []
         for i in range(len(observations)):
-            observations[i] = (observations[i]['dateTime'], self.data_cleaner(observations[i][pollutant]))
+            if observations[i][pollutant] is None:
+                continue
+            try:
+                clean_observations.append((observations[i]['dateTime'], self.data_cleaner(observations[i][pollutant])))
+            except TypeError as e:
+                syslog.syslog(syslog.LOG_WARNING, "%s at %d threw exception %s" % (pollutant, observations[i]['dateTime'], str(e)))
+        observations = clean_observations
 
         # validate observations
         last_valid_index = get_last_valid_index(observations, self.duration_in_secs)

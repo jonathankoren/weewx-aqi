@@ -27,7 +27,7 @@ def convert_pollutant_units(pollutant, obs_value, obs_unit, required_unit, temp_
 
     if (obs_unit[:9] == 'part_per_') and required_unit.endswith('_per_meter_cubed'):
         if obs_unit == 'part_per_million':
-            obs_value = convert_units(obs_value, obs_unit, 'part_per_billion', temp_in_kelvin, pressure_in_pascals)
+            obs_value = convert_pollutant_units(obs_value, obs_unit, 'part_per_billion', temp_in_kelvin, pressure_in_pascals)
             obs_unit = 'part_per_billion'
         v = ppb_to_microgram_per_meter_cubed(pollutant, obs_value, temp_in_kelvin, pressure_in_pascals)
         v_unit = 'microgram_per_meter_cubed'
@@ -35,7 +35,7 @@ def convert_pollutant_units(pollutant, obs_value, obs_unit, required_unit, temp_
             return v / 1000.0
         else:
             return v
-    elif (obs_unit[:9] == '_per_meter_cubed') and required_unit.endswith('part_per_'):
+    elif (obs_unit[9:] == '_per_meter_cubed') and (required_unit[:9] == 'part_per_'):
         if obs_unit == 'milligram_per_meter_cubed':
             obs_value *= 1000
             obs_unit = 'microgram_per_meter_cubed'
@@ -89,6 +89,8 @@ weewx.units.default_unit_format_dict['air_quality_index'] = '%d'
 weewx.units.default_unit_label_dict['air_quality_index'] = '' # unitless
 
 # unit conversion
+if 'liter' not in weewx.units.conversionDict:
+    weewx.units.conversionDict['liter'] = {}
 weewx.units.conversionDict['liter']['meter_cubed'] = lambda x: x / 1000.0
 weewx.units.conversionDict['meter_cubed'] = { 'liter': lambda x: x * 1000.0 }
 weewx.units.conversionDict['part_per_billion'] = { 'part_per_million': lambda x: x * 1000.0 },
