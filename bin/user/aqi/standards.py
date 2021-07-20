@@ -14,7 +14,8 @@ MX_IMCA_GUID = 3
 UK_DAQI_GUID = 4
 US_AQI_GUID = 5
 US_NOWCAST_GUID = 6
-EU_AQI_GUID = 7
+EU_EAQI_GUID = 7
+EU_CAQI_H_GUID = 8
 
 class AqiStandards(with_metaclass(ABCMeta)):
     def __init__(self, colors, categories, guid):
