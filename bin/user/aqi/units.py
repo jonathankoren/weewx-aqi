@@ -73,7 +73,7 @@ def microgram_per_meter_cubed_to_ppb(pollutant, ug_per_m3, sensor_temp_in_kelvin
 
 # Define unit group for AQI columns
 weewx.units.obs_group_dict['aqi_pm2_5'] = 'air_quality_index'
-weewx.units.obs_group_dict['aqi_pm10']  = 'air_quality_index'
+weewx.units.obs_group_dict['aqi_pm10_0']  = 'air_quality_index'
 weewx.units.obs_group_dict['aqi_co']    = 'air_quality_index'
 weewx.units.obs_group_dict['aqi_no2']   = 'air_quality_index'
 weewx.units.obs_group_dict['aqi_so2']   = 'air_quality_index'
