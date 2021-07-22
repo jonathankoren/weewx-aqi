@@ -340,9 +340,10 @@ class AqiService(weewx.engine.StdService):
                 try:
                     (record['aqi_' + pollutant], record['aqi_' + pollutant + '_category']) = \
                         self.aqi_standard.calculate_aqi(pollutant, required_unit, joined)
-                except (ValueError) as e: #, TypeError) as e:
+                except (ValueError) as e:
                     syslog.syslog(syslog.LOG_ERR, "AqiService: %s AQI calculation for %s on %s failed: %s" % (type(e).__name__, pollutant, event.record['dateTime'], str(e)))
                 except NotImplementedError as e:
+                    # Canada's AQHI does not define indcies for individual pollutants
                     pass
             else:
                 all_pollutants_available = False
