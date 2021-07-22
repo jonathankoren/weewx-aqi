@@ -139,38 +139,37 @@ class AqiCalculator(with_metaclass(ABCMeta)):
         Raises ValueError if the observations are somehow invalid (e.g. wrong
         units, wrong time range, too many missing values, etc.).'''
 
-class AqiTable(AqiCalculator):
-    '''Calculates an air quality index (AQI) from a table. Each entry in the
-    table contains a mapping of a rage of AQI values to a range of pollutant
-    concentrations. The specific AQI value is determined by a linear
-    interpolation of pollutant concentration to AQI value defined for the
-    range.'''
+class CalculatorCollection(AqiCalculator):
+    '''Used when multiple AqiCalculators are used for the single pollutant in
+    a single standard.
+
+    This is a very unusual case.'''
     def __init__(self, **kwargs):
-        '''Creates a new AqiTable'''
+        '''Creates a new CalculatorCollection'''
         # we don't need anything here, we're just implementing the interface.
         # BreakpointTables do all the work.
-        super(AqiTable, self).__init__(unit=None, duration_in_secs=None, obs_frequency_in_sec=None)
-        self.breakpoint_tables = []
+        super(CalculatorCollection, self).__init__(unit=None, duration_in_secs=None, obs_frequency_in_sec=None)
+        self.calculators = []
 
-    def add_breakpoint_table(self, breakpoint_table):
+    def add_calculator(self, breakpoint_table):
         '''Creates, and returns, a new BreakpointTable to the AqiTable that is
         valid for observations in the specified time range'''
-        self.breakpoint_tables.append(breakpoint_table)
-        self.unit = self.breakpoint_tables[0].unit
+        self.calculators.append(breakpoint_table)
+        self.unit = self.calculators[0].unit
         return breakpoint_table
 
     def max_duration(self):
         max_dur = 0
-        for t in self.breakpoint_tables:
+        for t in self.calculators:
             if t.max_duration() > max_dur:
                 max_dur = t.max_duration()
         return max_dur
 
     def calculate(self, pollutant, observation_unit, observations):
         aqi_result = None
-        for table in self.breakpoint_tables:
+        for calculator in self.calculators:
             try:
-                res = table.calculate(pollutant, observation_unit, observations)
+                res = calculator.calculate(pollutant, observation_unit, observations)
                 if (aqi_result is None) or (res[0] > aqi_result[0]):
                     aqi_result = res
             except IndexError:
@@ -181,7 +180,11 @@ class AqiTable(AqiCalculator):
             raise ValueError('AQI could not be calculated for the observations')
 
 class BreakpointTable(AqiCalculator):
-    '''This class is used to build the AqiTable.'''
+    '''Calculates an air quality index (AQI) from a table. Each entry in the
+    table contains a mapping of a rage of AQI values to a range of pollutant
+    concentrations. The specific AQI value is determined by a linear
+    interpolation of pollutant concentration to AQI value defined for the
+    range.'''
     def __init__(self, **kwargs):
         '''Creates a new breakpoint table that is valid for observations in
         the specified time range. This table is initially empty.

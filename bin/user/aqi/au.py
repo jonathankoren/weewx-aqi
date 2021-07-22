@@ -29,6 +29,7 @@ class AirQualityIndex(standards.AqiStandards):
                 obs_frequency_in_sec=obs_frequency_in_sec,
                 data_cleaner=calculators.ROUND_TO_1,
                 high_obs=9.0)
+                
             self.calculators[calculators.NO2] = calculators.LinearScale(
                 unit='parts_per_million',
                 duration_in_secs=1 * calculators.HOUR,
