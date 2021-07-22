@@ -24,34 +24,33 @@ MOLAR_MASSES.update({
 })
 
 GAS_CONSTANT = 8.31446  # in units of ((Pa m^3) / (K mol))
-IDEAL_GAS_TEMP_IN_KELVIN = 273.15           # 0 centigrade
-IDEAL_GAS_PRESSURE_IN_KILOPASCALS = 101.325      # 1 atmosphere
-MOLAR_VOLUME_AT_STP_IN_LITERS = 22.4
+IDEAL_GAS_TEMP_IN_KELVIN = 273.15               # 0 centigrade
+IDEAL_GAS_PRESSURE_IN_KILOPASCALS = 101.325     # 1 atmosphere
 
 def convert_pollutant_units(pollutant, obs_value, obs_unit, required_unit, temp_in_kelvin, pressure_in_kilopascals):
     if obs_unit == required_unit:
         return obs_value
 
     if (obs_unit[:9] == 'part_per_') and required_unit.endswith('_per_meter_cubed'):
+        ppb = obs_value
         if obs_unit == 'part_per_million':
-            obs_value = convert_pollutant_units(obs_value, obs_unit, 'part_per_billion', temp_in_kelvin, pressure_in_kilopascals)
-            obs_unit = 'part_per_billion'
-        v = ppb_to_microgram_per_meter_cubed(pollutant, obs_value, temp_in_kelvin, pressure_in_kilopascals)
-        v_unit = 'microgram_per_meter_cubed'
-        if required_unit == 'milligram_per_meter_cubed':
-            return v / 1000.0
+            ppb = weewx.units.conversionDict[obs_unit]['part_per_billion'](obs_value)
+        ug_per_m3 = ppb_to_microgram_per_meter_cubed(pollutant, ppb, temp_in_kelvin, pressure_in_kilopascals)
+        if required_unit == 'microgram_per_meter_cubed':
+            return ug_per_m3
         else:
-            return v
+            return weewx.units.conversionDict['microgram_per_meter_cubed'][required_unit](ug_per_m3)
+
     elif (obs_unit[9:] == '_per_meter_cubed') and (required_unit[:9] == 'part_per_'):
+        ug_per_m3 = obs_value
         if obs_unit == 'milligram_per_meter_cubed':
-            obs_value *= 1000
-            obs_unit = 'microgram_per_meter_cubed'
-        v = microgram_per_meter_cubed_to_ppb(pollutant, obs_value, temp_in_kelvin, pressure_in_kilopascals)
-        v_unit = 'part_per_billion'
-        if required_unit == 'part_per_million':
-            return v / 1000.0
+            ug_per_m3 = weewx.units.conversionDict[obs_unit]['microgram_per_meter_cubed'](obs_value)
+        ppb = microgram_per_meter_cubed_to_ppb(pollutant, ug_per_m3, temp_in_kelvin, pressure_in_kilopascals)
+        if required_unit == 'part_per_billion':
+            return ug_per_m3
         else:
-            return v
+            return weewx.units.conversionDict['part_per_billion'][required_unit](ppb)
+
     else:
         return weewx.units.conversionDict[obs_unit][required_unit](obs_value)
 
@@ -89,7 +88,7 @@ if 'liter' not in weewx.units.conversionDict:
     weewx.units.conversionDict['liter'] = {}
 weewx.units.conversionDict['liter']['meter_cubed'] = lambda x: x / 1000.0
 weewx.units.conversionDict['meter_cubed'] = { 'liter': lambda x: x * 1000.0 }
-weewx.units.conversionDict['part_per_billion'] = { 'part_per_million': lambda x: x * 1000.0 },
-weewx.units.conversionDict['part_per_million'] = { 'part_per_billion': lambda x: x / 1000.0 },
-weewx.units.conversionDict['microgram_per_meter_cubed'] = { 'milligram_per_meter_cubed': lambda x: x / 1000.0 },
-weewx.units.conversionDict['milligram_per_meter_cubed'] = { 'microgram_per_meter_cubed': lambda x: x * 1000.0 },
+weewx.units.conversionDict['part_per_billion'] = { 'part_per_million': lambda x: x * 1000.0 }
+weewx.units.conversionDict['part_per_million'] = { 'part_per_billion': lambda x: x / 1000.0 }
+weewx.units.conversionDict['microgram_per_meter_cubed'] = { 'milligram_per_meter_cubed': lambda x: x / 1000.0 }
+weewx.units.conversionDict['milligram_per_meter_cubed'] = { 'microgram_per_meter_cubed': lambda x: x * 1000.0 }
