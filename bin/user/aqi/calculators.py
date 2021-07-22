@@ -221,6 +221,10 @@ class CalculatorCollection(AqiCalculator):
         else:
             raise ValueError('AQI could not be calculated for the observations')
 
+    def _calculate_index_from_mean(self, mean):
+        raise NotImplementedError()
+
+
 class BreakpointTable(AqiCalculator):
     '''Calculates an air quality index (AQI) from a table. Each entry in the
     table contains a mapping of a rage of AQI values to a range of pollutant
