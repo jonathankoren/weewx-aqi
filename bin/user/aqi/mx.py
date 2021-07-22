@@ -1,7 +1,7 @@
 # -*- coding: utf-8-*-
 
 # weewx-aqi
-# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2021 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import operator

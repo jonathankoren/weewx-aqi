@@ -1,5 +1,5 @@
 # weewx-aqi
-# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2021 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import operator
@@ -85,7 +85,7 @@ class AirQualityIndex(standards.AqiStandards):
             .add_breakpoint(301, 500, 1250, 2049))
 
         # Per https://www3.epa.gov/airnow/aqi-technical-assistance-document-may2016.pdf :
-        # "How do I calculateaqi values for SO2? [...] If you have a daily max 1-hour.HOUR
+        # "How do I calculate aqi values for SO2? [...] If you have a daily max 1-hour.HOUR
         # SO2 concentration below 305 ppb, then use the breakpoints in Table 2 to
         # calculate theaqi value. If you have a 24-hour average SO2 concentration
         # greater than or equal to 305 ppb, then use the breakpoints in Table 2 to
@@ -96,7 +96,7 @@ class AirQualityIndex(standards.AqiStandards):
         # value, you find that the 24-hour concentration is not above 305 ppb. If this
         # happens, use 200 for the lower and upper aqi breakpoints (ILo and IHi) in
         # Equation 1 to calculate theaqi value based on the daily max 1-hour value.
-        # This effectively fixes theaqi value at 200 exactly, which ensures that you
+        # This effectively fixes the aqi value at 200 exactly, which ensures that you
         # get the highest possible aqi value associated with your 1-hour concentration
         # on such days."
         #
