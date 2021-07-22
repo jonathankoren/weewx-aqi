@@ -172,7 +172,7 @@ class AqiCalculator(with_metaclass(ABCMeta)):
         obs_mean = self.mean_cleaner(self.mean_calculator(observations))
 
         # map the mean to an AQI value
-        return self._calculate_index_from_mean(obs_mean):
+        return self._calculate_index_from_mean(obs_mean)
 
     @abstractmethod
     def _calculate_index_from_mean(self, mean):

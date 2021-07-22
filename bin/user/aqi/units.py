@@ -6,30 +6,37 @@ import weewx.units
 
 from . import calculators
 
-# molar masses (aka mollecular mass) in units of grams per mole
+# molar masses (aka molecular mass) in units of grams per mole
 MOLAR_MASSES = {
-    calculators.CO:   29.0101,  # carbon monoxide
-    calculators.NO2:  46.0055,  # nitrogen dioxide
-    calculators.SO2:  64.0638,  # sulfur dioxide
-    calculators.O3:   47.9982,  # ozone
-    calculators.NH3:  17.0305,  # methane
-    calculators.PB:  207.2000,  # lead
+    'c': 12.011,    # carbon
+    'o': 15.999,    # oxygen
+    's': 32.06,     # sulfur
+    'n': 14.007,    # nitrogen
+    'h':  1.008     # hydrogen
 }
+MOLAR_MASSES.update({
+    calculators.CO:  MOLAR_MASSES['c'] + MOLAR_MASSES['o'],
+    calculators.NO2: MOLAR_MASSES['n'] + (2 * MOLAR_MASSES['o']),
+    calculators.SO2: MOLAR_MASSES['s'] + (2 * MOLAR_MASSES['o']),
+    calculators.O3:  3 * MOLAR_MASSES['o'],
+    calculators.NH3: MOLAR_MASSES['n'] + (3 * MOLAR_MASSES['h']),
+    calculators.PB:  207.2
+})
 
-GAS_CONSTANT = 8.31441  # in units of ((Pa m^3) / (K mol))
-IDEAL_GAS_TEMP_IN_KELVIN = 298.15
-IDEAL_GAS_PRESSURE_IN_PASCALS = 101325
-MOLAR_VOLUME_AT_STAP_IN_LITERS = 24.4652
+GAS_CONSTANT = 8.31446  # in units of ((Pa m^3) / (K mol))
+IDEAL_GAS_TEMP_IN_KELVIN = 273.15           # 0 centigrade
+IDEAL_GAS_PRESSURE_IN_KILOPASCALS = 101.325      # 1 atmosphere
+MOLAR_VOLUME_AT_STP_IN_LITERS = 22.4
 
-def convert_pollutant_units(pollutant, obs_value, obs_unit, required_unit, temp_in_kelvin, pressure_in_pascals):
+def convert_pollutant_units(pollutant, obs_value, obs_unit, required_unit, temp_in_kelvin, pressure_in_kilopascals):
     if obs_unit == required_unit:
         return obs_value
 
     if (obs_unit[:9] == 'part_per_') and required_unit.endswith('_per_meter_cubed'):
         if obs_unit == 'part_per_million':
-            obs_value = convert_pollutant_units(obs_value, obs_unit, 'part_per_billion', temp_in_kelvin, pressure_in_pascals)
+            obs_value = convert_pollutant_units(obs_value, obs_unit, 'part_per_billion', temp_in_kelvin, pressure_in_kilopascals)
             obs_unit = 'part_per_billion'
-        v = ppb_to_microgram_per_meter_cubed(pollutant, obs_value, temp_in_kelvin, pressure_in_pascals)
+        v = ppb_to_microgram_per_meter_cubed(pollutant, obs_value, temp_in_kelvin, pressure_in_kilopascals)
         v_unit = 'microgram_per_meter_cubed'
         if required_unit == 'milligram_per_meter_cubed':
             return v / 1000.0
@@ -39,7 +46,7 @@ def convert_pollutant_units(pollutant, obs_value, obs_unit, required_unit, temp_
         if obs_unit == 'milligram_per_meter_cubed':
             obs_value *= 1000
             obs_unit = 'microgram_per_meter_cubed'
-        v = microgram_per_meter_cubed_to_ppb(pollutant, obs_value, temp_in_kelvin, pressure_in_pascals)
+        v = microgram_per_meter_cubed_to_ppb(pollutant, obs_value, temp_in_kelvin, pressure_in_kilopascals)
         v_unit = 'part_per_billion'
         if required_unit == 'part_per_million':
             return v / 1000.0
@@ -48,28 +55,17 @@ def convert_pollutant_units(pollutant, obs_value, obs_unit, required_unit, temp_
     else:
         return weewx.units.conversionDict[obs_unit][required_unit](obs_value)
 
-def molar_volume_in_litres(temp_in_kelvin, pressure_in_pascals):
-    '''Calculates the molar volume of a gas at temperature and pressure according
-    to the ideal gas law:
-
-        V = (R * T) / P
-
-    where:
-        R is the gas constant
-        T is temperature in kelvin
-        P is pressure in pascals
-
-    For reference, standard temperature and pressure is 298.15 Kelvin and 101325 Pascals.
-    '''
-    return round(GAS_CONSTANT * temp_in_kelvin / float(pressure_in_pascals), 4)
-
-def ppb_to_microgram_per_meter_cubed(pollutant, ppb, sensor_temp_in_kelvin=IDEAL_GAS_TEMP_IN_KELVIN, sensor_pressure_in_pascals=IDEAL_GAS_PRESSURE_IN_PASCALS):
+def ppb_to_microgram_per_meter_cubed(pollutant, ppb, sensor_temp_in_kelvin=IDEAL_GAS_TEMP_IN_KELVIN, sensor_pressure_in_kilopascals=IDEAL_GAS_PRESSURE_IN_KILOPASCALS):
     '''Converts parts per billion to micrograms per cubic meters at temperature and pressure'''
-    return round(ppb / (molar_volume_in_litres(sensor_temp_in_kelvin, sensor_pressure_in_pascals) * MOLAR_MASSES[pollutant]), 4)
 
-def microgram_per_meter_cubed_to_ppb(pollutant, ug_per_m3, sensor_temp_in_kelvin=IDEAL_GAS_TEMP_IN_KELVIN, sensor_pressure_in_pascals=IDEAL_GAS_PRESSURE_IN_PASCALS):
+    ugm3 = ppb * (sensor_pressure_in_kilopascals / GAS_CONSTANT) * MOLAR_MASSES[pollutant] / sensor_temp_in_kelvin
+    return round(ugm3, 3)
+
+def microgram_per_meter_cubed_to_ppb(pollutant, ug_per_m3, sensor_temp_in_kelvin=IDEAL_GAS_TEMP_IN_KELVIN, sensor_pressure_in_kilopascals=IDEAL_GAS_PRESSURE_IN_KILOPASCALS):
     '''Converts parts per million to micrograms per cubic meters at temperature and pressure'''
-    return round(molar_volume_in_litres(sensor_temp_in_kelvin, sensor_pressure_in_pascals) *  ug_per_m3 / MOLAR_MASSES[pollutant], 4)
+    ppb = (ug_per_m3 * sensor_temp_in_kelvin) / ((sensor_pressure_in_kilopascals / GAS_CONSTANT) * MOLAR_MASSES[pollutant])
+
+    return round(ppb, 3)
 
 # Define unit group for AQI columns
 weewx.units.obs_group_dict['aqi_pm2_5'] = 'air_quality_index'
