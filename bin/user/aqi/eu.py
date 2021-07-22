@@ -20,9 +20,44 @@ CAQI_YELLOW = 'EEC209'
 CAQI_ORANGE = 'DB8503'
 CAQI_RED = 'E8416F'
 
+def eu_24hr_mean(observations, obs_frequency_in_sec, req_hourly_obs_ratio, min_hours):
+    hourly_samples = [0] * 24
+    hourly_means = [0] * 24
+
+    max_hourly_obs = calculators.HOUR / obs_frequency_in_sec
+
+    start_time = observations[0][0]
+    for obs in observations:
+        index = int((start_time - obs[0]) / calculators.HOUR)
+        hourly_samples[index] += 1
+        hourly_means[index] += obs[1]
+
+    valid_hours = 0
+    for i in 24:
+        if (hourly_samples[i] / max_hourly_obs) >= req_hourly_obs_ratio:
+            hourly_means[i] = hourly_means[i] / hourly_samples[i]
+            valid_hours += 1
+        else:
+            hourly_means[i] = 0
+
+    if valid_hours < min_hours:
+        raise ValueError('eu_24hr_mean required %d hours of data, but only had %d' % (min_hours, valid_hours))
+
+    total = 0
+    for m in hourly_means:
+        total += m
+    return total / valid_hours
+
 class EuropeanAirQualityIndex(standards.AqiStandards):
     '''Calculates the European Air Quality Index as defined at
-    https://airindex.eea.europa.eu/Map/AQI/Viewer/#'''
+    https://airindex.eea.europa.eu/Map/AQI/Viewer/#
+
+    Note that the EAQI does not have index values, but rather just categories.
+    Therefore we define the index values as 1 through 6.
+
+    Implementation note: The EAQI describes how missing data can be interpolated
+    based on the CAMS prediction model, but this code does not do that. Instead
+    it simply flags missing data.'''
     def __init__(self, obs_frequency_in_sec):
         super(EuropeanAirQualityIndex, self).__init__(
             [EAQI_BRIGHT_TEAL, EAQI_TEAL, EAQI_YELLOW, EAQI_PINK, EAQI_RED, EAQI_PURPLE],
@@ -46,6 +81,7 @@ class EuropeanAirQualityIndex(standards.AqiStandards):
             self.calculators[calculators.PM10_0].add_breakpoint_table(calculators.BreakpointTable(
                 data_cleaner=calculators.TRUNCATE_TO_0,
                 mean_cleaner=calculators.TRUNCATE_TO_0,
+                mean_calculator=lambda obs: eu_24hr_mean(obs, obs_frequency_in_sec, 0.75, 18),
                 unit='microgram_per_meter_cubed',
                 duration_in_secs=24 * calculators.HOUR,
                 obs_frequency_in_sec=obs_frequency_in_sec) \
@@ -74,6 +110,7 @@ class EuropeanAirQualityIndex(standards.AqiStandards):
             self.calculators[calculators.PM2_5].add_breakpoint_table(calculators.BreakpointTable(
                 data_cleaner=calculators.TRUNCATE_TO_0,
                 mean_cleaner=calculators.TRUNCATE_TO_0,
+                mean_calculator=lambda obs: eu_24hr_mean(obs, obs_frequency_in_sec, 0.75, 18),
                 unit='microgram_per_meter_cubed',
                 duration_in_secs=24 * calculators.HOUR,
                 obs_frequency_in_sec=obs_frequency_in_sec) \
@@ -97,8 +134,6 @@ class EuropeanAirQualityIndex(standards.AqiStandards):
                 .add_breakpoint(4, 4,  351,  500) \
                 .add_breakpoint(5, 5,  501,  750) \
                 .add_breakpoint(6, 6,  751, 1250))
-
-
 
 class CommonAirQualityHourlyIndex(standards.AqiStandards):
     '''Calculates the Common Air Quality hourly Index as defined at

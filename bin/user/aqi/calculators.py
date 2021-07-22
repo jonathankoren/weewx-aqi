@@ -1,5 +1,5 @@
 # weewx-aqi
-# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2021 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 from abc import ABCMeta, abstractmethod
@@ -277,3 +277,45 @@ class ArithmeticMean(AqiCalculator):
         for obs in observations:
             obs_sum = obs_sum + obs[1]
         return self.mean_cleaner(obs_sum / float(len(observations)))
+
+class LinearScale(AqiCalculator):
+    '''Maps a measurment range to an index range.
+        low_obs
+            low point on the scale in observed units (default 0)
+        high_obs (REQUIRED)
+            high point on the scale in observed units
+        low_scale
+            low point on the scale in indexed values (default 0)
+        high_scale
+            high point on the scale in indexed values (default 100)
+    '''
+    def __init__(self, **kwargs):
+        super(LinearScale, self).__init__(kwargs)
+        self.low_obs = kwargs.get('low_obs', 0)
+        self.high_obs = kwargs['high_obs']
+        self.low_scale = kwargs.get('low_scale', 0)
+        self.high_scale = kwargs.get('high_scale', 100)
+
+    def calculate(self, pollutant, observation_unit, observations):
+        if observation_unit != self.unit:
+            raise ValueError('inappropriate units, expected %s, but got %s' % (self.unit, observation_unit))
+
+        # clean the data
+        observations = sorted(observations, key=operator.itemgetter('dateTime'), reverse=True)
+        for i in range(len(observations)):
+            observations[i] = (observations[i]['dateTime'], self.data_cleaner(observations[i][pollutant]))
+
+        # validate observations
+        last_valid_index = get_last_valid_index(observations, self.duration_in_secs)
+        observations = observations[:last_valid_index + 1]
+        validate_number_of_observations(observations,
+            self.duration_in_secs,
+            self.obs_frequency_in_sec,
+            self.required_observation_ratio)
+
+        # calculate the mean observation
+        obs_mean = self.mean_cleaner(self.mean_calculator(observations))
+
+        # linear scale
+        scale = (obs_mean - self.low_obs) / (self.high_obs - self.low_obs)
+        return (scale * (self.high_scale - self.low_scale)) + self.low_scale
