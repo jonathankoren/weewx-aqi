@@ -67,30 +67,30 @@ class AirQualityIndex(standards.AqiStandards):
                 high_obs=25)
 
 
-class IntermWebReportingParticulateIndex(standards.AqiStandards):
-'''New South Wales developed an interm standard for reporting hourly
-particulate concentrations. These differ from 24 hour scale used for
-National Air NEPM quality standards used for the AQI. This interm
-standard was adopted Februrary 2020.
+class InterimWebReportingParticulateIndex(standards.AqiStandards):
+    '''New South Wales developed an interim standard for reporting hourly
+    particulate concentrations. These differ from 24 hour scale used for
+    National Air NEPM quality standards used for the AQI. This interm
+    standard was adopted Februrary 2020.
 
-See "Interim web reporting approach for 1-hour particles" at
-https://www.environment.nsw.gov.au/topics/air/understanding-air-quality-data/air-quality-categories/history-of-air-quality-reporting/about-the-air-quality-index
-'''
-def __init__(self, obs_frequency_in_sec):
-    super(IntermWebReportingParticulateIndex, self).__init__(
-        [TEAL, GREEN, YELLOW, ORANGE, PURPLE, RED],
-        ['Very Good', 'Good', 'Fair', 'Poor', 'Very Poor', 'Hazardous'],
-        standards.AU_IWRPI_GUID)
-        self.calculators[calculators.PM10_0] = calculators.LinearScale(
-            unit='microgram_per_meter_cubed',
-            duration_in_secs=1 * calculators.HOUR,
-            obs_frequency_in_sec=obs_frequency_in_sec,
-            data_cleaner=calculators.ROUND_TO_1,
-            high_obs=80.1)
+    See "Interim web reporting approach for 1-hour particles" at
+    https://www.environment.nsw.gov.au/topics/air/understanding-air-quality-data/air-quality-categories/history-of-air-quality-reporting/about-the-air-quality-index
+    '''
+    def __init__(self, obs_frequency_in_sec):
+        super(IntermWebReportingParticulateIndex, self).__init__(
+            [TEAL, GREEN, YELLOW, ORANGE, PURPLE, RED],
+            ['Very Good', 'Good', 'Fair', 'Poor', 'Very Poor', 'Hazardous'],
+            standards.AU_IWRPI_GUID)
+            self.calculators[calculators.PM10_0] = calculators.LinearScale(
+                unit='microgram_per_meter_cubed',
+                duration_in_secs=1 * calculators.HOUR,
+                obs_frequency_in_sec=obs_frequency_in_sec,
+                data_cleaner=calculators.ROUND_TO_1,
+                high_obs=80.1)
 
-        self.calculators[calculators.PM2_5] = calculators.LinearScale(
-            unit='microgram_per_meter_cubed',
-            duration_in_secs=1 * calculators.HOUR,
-            obs_frequency_in_sec=obs_frequency_in_sec,
-            data_cleaner=calculators.ROUND_TO_1,
-            high_obs=62.1)
+            self.calculators[calculators.PM2_5] = calculators.LinearScale(
+                unit='microgram_per_meter_cubed',
+                duration_in_secs=1 * calculators.HOUR,
+                obs_frequency_in_sec=obs_frequency_in_sec,
+                data_cleaner=calculators.ROUND_TO_1,
+                high_obs=62.1)

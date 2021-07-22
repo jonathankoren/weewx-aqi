@@ -7,16 +7,22 @@ quality index from various pollutants. Air quality indices are single numbers
 that are meant to succinctly describe how safe the air is. `weeex-aqi` can
 calculate the following indices:
 
+* Australia's Air Quality Index
+* Australia's Interim Web Reporting Particulate Index (February 2020)
 * Canada's Air Quality Health Index
+* European Union's European Air Quality Index
+* European Union's Common Air Quality Hourly Index
 * India's National Air Quality Index
 * Mexico's Índice Metropolitano de la Calidad del Aire
 * United Kingdom's Daily Air Quality Index
 * United States's Air Quality Index
 * United States's NowCast Air Quality Index
 
+
 ## Prerequisites
 A source for air quality data, such as
 [`weewx-purpleair`](https://github.com/bakerkj/weewx-purpleair) .
+
 
 ## Installation
 1) run the installer (from the git directory):
@@ -151,3 +157,10 @@ aqi_pb_category,
 ## Additional utilities
 `aqi_backfill` is a utility that allows you to backfill `aqi.sdb` according to
 the current `weewx.conf`.
+
+
+## Development Testing
+```
+cd weewx-aqi
+python3 -m unittest
+```
