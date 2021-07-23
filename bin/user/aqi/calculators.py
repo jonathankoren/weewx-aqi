@@ -209,6 +209,9 @@ class CalculatorCollection(AqiCalculator):
         return max_dur
 
     def calculate(self, pollutant, observation_unit, observations):
+        '''Returns a calculation by combining the results of the subcalulators.
+        Any subcalculator that fails to return a result is skipped. The maximum
+        score from multiple results is returned.'''
         aqi_result = None
         for calculator in self.calculators:
             try:
