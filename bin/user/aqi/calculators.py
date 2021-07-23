@@ -148,6 +148,7 @@ class AqiCalculator(with_metaclass(ABCMeta)):
 
         # clean the data
         observations = sorted(observations, key=operator.itemgetter('dateTime'), reverse=True)
+
         j = 0
         clean_observations = [None] * len(observations)
         for i in range(len(observations)):
@@ -275,7 +276,7 @@ class ArithmeticMean(AqiCalculator):
         super(ArithmeticMean, self).__init__(kwargs)
 
     def _calculate_index_from_mean(self, obs_mean):
-        return obs_mean
+        return (obs_mean, None)
 
 class LinearScale(AqiCalculator):
     '''Linearly interpolates an observation range to an AQI range.
@@ -296,6 +297,15 @@ class LinearScale(AqiCalculator):
             'low_aqi': kwargs.get('low_aqi', 0),
             'high_aqi': kwargs.get('high_aqi', 100)
         }
+        self.breakpoints = kwargs['breakpoints']
 
     def _calculate_index_from_mean(self, pollutant, observation_unit, observations):
-        return linear_interpolate(self.interpolation_config, obs_mean)
+        score = linear_interpolate(self.interpolation_config, obs_mean)
+        for (i, low) in enumerate(self.breakpoints):
+            if i < (len(self.breakpoints) - 1):
+                if (low <= score) and (score < self.breakpoints[i + 1]):
+                    index = i
+                    break
+            else:
+                index = i
+        return (score, index)

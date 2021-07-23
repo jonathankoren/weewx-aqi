@@ -3,6 +3,7 @@
 # License: GPL 3
 
 import operator
+import syslog
 
 from . import calculators
 from . import standards
@@ -199,9 +200,9 @@ class AirQualityIndex(standards.AqiStandards):
             else:
                 raise e
 
-def nowcast_mean(observations, obs_frequency_in_sec, required_observation_ratio, min_hours):
+def nowcast_pm_mean(observations, obs_frequency_in_sec, required_observation_ratio, min_hours):
     '''Calculates the NowCast weighted mean for a set of observations. Each
-    hourly average requires 75% of the possible readings. '''
+    hourly average requires at least required_observation_ratio of the possible readings. '''
     hourly_means = [0.0] * 12
     hourly_samples = [0.0] * 12
 
@@ -253,6 +254,13 @@ def nowcast_mean(observations, obs_frequency_in_sec, required_observation_ratio,
             denominator = denominator + sample_weight
     return numerator / float(denominator)
 
+
+def nowcast_o3_mean(observations, obs_frequency_in_sec, required_observation_ratio, min_hours):
+    # We're using the old (pre-2019) method, instead of the partial least squares
+    # and decision tree stuff outlined in
+    # https://raw.githubusercontent.com/USEPA/O3-Nowcast/master/WhitePaper.pdf
+    return nowcast_pm_mean(observations, obs_frequency_in_sec, required_observation_ratio, min_hours)
+
 class NowCast(standards.AqiStandards):
     '''Calculates the US EPA NowCast Air Quality Index (AQI) as defined by the
     US EPA in https://www3.epa.gov/airnow/aqi-technical-assistance-document-may2016.pdf
@@ -274,7 +282,7 @@ class NowCast(standards.AqiStandards):
         self.calculators[calculators.PM2_5] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_1,
             mean_cleaner=calculators.TRUNCATE_TO_1,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 2),
+            mean_calculator=lambda obs: nowcast_pm_mean(obs, obs_frequency_in_sec, 0.75, 3),
             unit='microgram_per_meter_cubed',
             duration_in_secs=12 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec) \
@@ -288,7 +296,7 @@ class NowCast(standards.AqiStandards):
         self.calculators[calculators.PM10_0] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 2),
+            mean_calculator=lambda obs: nowcast_pm_mean(obs, obs_frequency_in_sec, 0.75, 3),
             unit='microgram_per_meter_cubed',
             duration_in_secs=12 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec) \
@@ -303,9 +311,9 @@ class NowCast(standards.AqiStandards):
         self.calculators[calculators.O3].add_calculator(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 1),
+            mean_calculator=lambda obs: nowcast_o3_mean(obs, obs_frequency_in_sec, 0.75, 1),
             unit='parts_per_billion',
-            duration_in_secs=8 * calculators.HOUR,
+            duration_in_secs=336 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec) \
             .add_breakpoint(  0,  50,   0,  54) \
             .add_breakpoint( 51, 100,  55,  70) \
@@ -315,9 +323,9 @@ class NowCast(standards.AqiStandards):
         self.calculators[calculators.O3].add_calculator(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 1),
+            mean_calculator=lambda obs: nowcast_o3_mean(obs, obs_frequency_in_sec, 0.75, 1),
             unit='parts_per_billion',
-            duration_in_secs=1 * calculators.HOUR,
+            duration_in_secs=336 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec,
             bp_index_offset=2) \
             .add_breakpoint(101, 150, 125, 164) \

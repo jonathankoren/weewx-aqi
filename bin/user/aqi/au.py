@@ -28,14 +28,16 @@ class AirQualityIndex(standards.AqiStandards):
                 duration_in_secs=8 * calculators.HOUR,
                 obs_frequency_in_sec=obs_frequency_in_sec,
                 data_cleaner=calculators.ROUND_TO_1,
-                high_obs=9.0)
+                high_obs=9.0,
+                breakpoints=[0, 34, 100, 150, 200])
 
             self.calculators[calculators.NO2] = calculators.LinearScale(
                 unit='parts_per_million',
                 duration_in_secs=1 * calculators.HOUR,
                 obs_frequency_in_sec=obs_frequency_in_sec,
                 data_cleaner=calculators.ROUND_TO_2,
-                high_obs=0.12)
+                high_obs=0.12,
+                breakpoints=[0, 34, 100, 150, 200])
 
             # Australia's NEPM also defines O3 as 4 hours mean at 0.08 ppm
             # I don't know how these are combined.
@@ -44,28 +46,32 @@ class AirQualityIndex(standards.AqiStandards):
                 duration_in_secs=1 * calculators.HOUR,
                 obs_frequency_in_sec=obs_frequency_in_sec,
                 data_cleaner=calculators.ROUND_TO_2,
-                high_obs=0.10)
+                high_obs=0.10,
+                breakpoints=[0, 34, 100, 150, 200])
 
             self.calculators[calculators.SO2] = calculators.LinearScale(
                 unit='parts_per_million',
                 duration_in_secs=1 * calculators.HOUR,
                 obs_frequency_in_sec=obs_frequency_in_sec,
                 data_cleaner=calculators.ROUND_TO_2,
-                high_obs=0.20)
+                high_obs=0.20,
+                breakpoints=[0, 34, 100, 150, 200])
 
             self.calculators[calculators.PM10_0] = calculators.LinearScale(
                 unit='microgram_per_meter_cubed',
                 duration_in_secs=24 * calculators.HOUR,
                 obs_frequency_in_sec=obs_frequency_in_sec,
                 data_cleaner=calculators.ROUND_TO_2,
-                high_obs=50)
+                high_obs=50,
+                breakpoints=[0, 34, 100, 150, 200])
 
             self.calculators[calculators.PM2_5] = calculators.LinearScale(
                 unit='microgram_per_meter_cubed',
                 duration_in_secs=24 * calculators.HOUR,
                 obs_frequency_in_sec=obs_frequency_in_sec,
                 data_cleaner=calculators.ROUND_TO_2,
-                high_obs=25)
+                high_obs=25,
+                breakpoints=[0, 34, 100, 150, 200])
 
 
 class InterimWebReportingParticulateIndex(standards.AqiStandards):
