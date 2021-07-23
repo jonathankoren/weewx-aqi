@@ -313,7 +313,7 @@ class NowCast(standards.AqiStandards):
             mean_cleaner=calculators.TRUNCATE_TO_0,
             mean_calculator=lambda obs: nowcast_o3_mean(obs, obs_frequency_in_sec, 0.75, 1),
             unit='parts_per_billion',
-            duration_in_secs=336 * calculators.HOUR,
+            duration_in_secs=1 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec) \
             .add_breakpoint(  0,  50,   0,  54) \
             .add_breakpoint( 51, 100,  55,  70) \
@@ -325,7 +325,7 @@ class NowCast(standards.AqiStandards):
             mean_cleaner=calculators.TRUNCATE_TO_0,
             mean_calculator=lambda obs: nowcast_o3_mean(obs, obs_frequency_in_sec, 0.75, 1),
             unit='parts_per_billion',
-            duration_in_secs=336 * calculators.HOUR,
+            duration_in_secs=8 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec,
             bp_index_offset=2) \
             .add_breakpoint(101, 150, 125, 164) \
