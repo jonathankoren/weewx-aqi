@@ -1,8 +1,6 @@
-#!/usr/bin/env python -I ../bin/user
-
 import unittest
-from bin.user.aqi.eu import *
 
+from bin.user.aqi.eu import *
 
 class TestEU(unittest.TestCase):
     def test_eu_24hr_mean(self):
@@ -29,7 +27,7 @@ class TestEU(unittest.TestCase):
             return obs
 
         obs = gen_obs()
-        self.assertEquals(eu_24hr_mean(obs, obs_freq, obs_ratio, min_hours), expected_mean)
+        self.assertEqual(eu_24hr_mean(obs, obs_freq, obs_ratio, min_hours), expected_mean)
 
         # now we're just checking for exceptions
         min_hours = 24

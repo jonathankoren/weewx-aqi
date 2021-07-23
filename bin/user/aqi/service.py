@@ -312,10 +312,10 @@ class AqiService(weewx.engine.StdService):
 
             # convert pressure to pascals
             pressure_unit = get_unit_from_column(as_column_to_real_column['pressure'], row['weather_usUnits'])
-            press_pascals = row['pressure']
+            press_kilopascals = row['pressure']
             if pressure_unit != 'hPa':
-                press_pascals = weewx.units.conversionDict[pressure_unit]['hPa'](press_pascals)
-            press_pascals *= 100
+                press_kilopascals = weewx.units.conversionDict[pressure_unit]['hPa'](press_kilopascals)
+            press_kilopascals /= 10
 
             for (pollutant, required_unit) in list(self.aqi_standard.get_pollutants().items()):
                 if pollutant in row:
@@ -325,7 +325,7 @@ class AqiService(weewx.engine.StdService):
                     except KeyError:
                         syslog.syslog(syslog.LOG_WARNING, "AqiService: AQI calculation could not find unit for column %s, assuming %s" % (as_column_to_real_column[pollutant], required_unit))
                         obs_unit = required_unit
-                    joined[i][pollutant] = units.convert_pollutant_units(pollutant, row[pollutant], obs_unit, required_unit, temp_kelvin, press_pascals)
+                    joined[i][pollutant] = units.convert_pollutant_units(pollutant, row[pollutant], obs_unit, required_unit, temp_kelvin, press_kilopascals)
 
         # calculate the AQIs
         record = {
@@ -340,9 +340,10 @@ class AqiService(weewx.engine.StdService):
                 try:
                     (record['aqi_' + pollutant], record['aqi_' + pollutant + '_category']) = \
                         self.aqi_standard.calculate_aqi(pollutant, required_unit, joined)
-                except (ValueError) as e: #, TypeError) as e:
+                except (ValueError) as e:
                     syslog.syslog(syslog.LOG_ERR, "AqiService: %s AQI calculation for %s on %s failed: %s" % (type(e).__name__, pollutant, event.record['dateTime'], str(e)))
                 except NotImplementedError as e:
+                    # Canada's AQHI does not define indcies for individual pollutants
                     pass
             else:
                 all_pollutants_available = False

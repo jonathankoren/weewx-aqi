@@ -1,5 +1,5 @@
 # weewx-aqi
-Copyright 2018, 2019 - Jonathan Koren <jonathan@jonathankoren.com>
+Copyright 2018 - 2021 -- Jonathan Koren <jonathan@jonathankoren.com>
 
 ## What is it?
 `weewx-aqi` *is not* an air quality monitor. Instead, it calculates an air

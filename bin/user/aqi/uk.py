@@ -28,8 +28,7 @@ class DailyAirQualityIndex(standards.AqiStandards):
             ['Low', 'Low', 'Low', 'Moderate', 'Moderate', 'Moderate', 'High', 'High', 'High', 'Very High'],
             standards.UK_DAQI_GUID)
 
-        self.calculators[calculators.O3] = calculators.AqiTable()
-        self.calculators[calculators.O3].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.O3] = calculators.BreakpointTable(
             mean_cleaner=calculators.ROUND_TO_0,
             unit='microgram_per_meter_cubed',
             duration_in_secs=8 * calculators.HOUR,
@@ -43,10 +42,9 @@ class DailyAirQualityIndex(standards.AqiStandards):
             .add_breakpoint( 7,  7, 161, 187) \
             .add_breakpoint( 8,  8, 188, 213) \
             .add_breakpoint( 9,  9, 214, 240) \
-            .add_breakpoint(10, 10, 241, 9999))      # no upper bound
+            .add_breakpoint(10, 10, 241, 9999)      # no upper bound
 
-        self.calculators[calculators.NO2] = calculators.AqiTable()
-        self.calculators[calculators.NO2].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.NO2] = calculators.BreakpointTable(
             mean_cleaner=calculators.ROUND_TO_0,
             unit='microgram_per_meter_cubed',
             duration_in_secs=1 * calculators.HOUR,
@@ -60,10 +58,9 @@ class DailyAirQualityIndex(standards.AqiStandards):
             .add_breakpoint( 7,  7, 401, 467) \
             .add_breakpoint( 8,  8, 468, 534) \
             .add_breakpoint( 9,  9, 535, 600) \
-            .add_breakpoint(10, 10, 601, 9999))      # no upper bound
+            .add_breakpoint(10, 10, 601, 9999)      # no upper bound
 
-        self.calculators[calculators.SO2] =  calculators.AqiTable()
-        self.calculators[calculators.SO2].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.SO2] = calculators.BreakpointTable(
             mean_cleaner=calculators.ROUND_TO_0,
             unit='microgram_per_meter_cubed',
             duration_in_secs=15 * calculators.MINUTE,
@@ -77,10 +74,9 @@ class DailyAirQualityIndex(standards.AqiStandards):
             .add_breakpoint( 7,  7,  533,  710) \
             .add_breakpoint( 8,  8,  711,  887) \
             .add_breakpoint( 9,  9,  888, 1064) \
-            .add_breakpoint(10, 10, 1065, 9999))    # no upper bound
+            .add_breakpoint(10, 10, 1065, 9999)    # no upper bound
 
-        self.calculators[calculators.PM2_5] = calculators.AqiTable()
-        self.calculators[calculators.PM2_5].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.PM2_5] = calculators.BreakpointTable(
             mean_cleaner=calculators.ROUND_TO_0,
             unit='microgram_per_meter_cubed',
             duration_in_secs=24 * calculators.HOUR,
@@ -94,10 +90,9 @@ class DailyAirQualityIndex(standards.AqiStandards):
             .add_breakpoint( 7,  7, 54, 58) \
             .add_breakpoint( 8,  8, 59, 64) \
             .add_breakpoint( 9,  9, 65, 70) \
-            .add_breakpoint(10, 10, 71, 9999))    # no upper bound
+            .add_breakpoint(10, 10, 71, 9999)    # no upper bound
 
-        self.calculators[calculators.PM10_0] = calculators.AqiTable()
-        self.calculators[calculators.PM10_0].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.PM10_0] = calculators.BreakpointTable(
             mean_cleaner=calculators.ROUND_TO_0,
             unit='microgram_per_meter_cubed',
             duration_in_secs=24 * calculators.HOUR,
@@ -111,4 +106,4 @@ class DailyAirQualityIndex(standards.AqiStandards):
             .add_breakpoint( 7,  7,  76,  83) \
             .add_breakpoint( 8,  8,  84,  91) \
             .add_breakpoint( 9,  9,  92, 100) \
-            .add_breakpoint(10, 10, 101, 9999))  # no upper bound
+            .add_breakpoint(10, 10, 101, 9999)  # no upper bound
