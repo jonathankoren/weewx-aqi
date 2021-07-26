@@ -187,7 +187,7 @@ class CalculatorCollection(AqiCalculator):
     '''Used when multiple AqiCalculators are used for the single pollutant in
     a single standard.
 
-    This is a very unusual case.'''
+    This is not a common case.'''
     def __init__(self, **kwargs):
         '''Creates a new CalculatorCollection'''
         # we don't need anything here, we're just implementing the interface.
@@ -227,7 +227,6 @@ class CalculatorCollection(AqiCalculator):
 
     def _calculate_index_from_mean(self, mean):
         raise NotImplementedError()
-
 
 class BreakpointTable(AqiCalculator):
     '''Calculates an air quality index (AQI) from a table. Each entry in the

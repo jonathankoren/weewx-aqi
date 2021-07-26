@@ -150,7 +150,7 @@ class CommonAirQualityHourlyIndex(standards.AqiStandards):
             .add_breakpoint( 26,   50,  51,  100) \
             .add_breakpoint( 51,   75, 101,  200) \
             .add_breakpoint( 76,  100, 201,  400) \
-            .add_breakpoint(101, 1000, 401, 1300)
+            .add_breakpoint(101, 1000, 401, 1300)       # undefined excessive range
 
         self.calculators[calculators.PM10_0] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
@@ -162,7 +162,7 @@ class CommonAirQualityHourlyIndex(standards.AqiStandards):
             .add_breakpoint( 26,   50,  26,   50) \
             .add_breakpoint( 51,   75,  51,   90) \
             .add_breakpoint( 76,  100,  91,  180) \
-            .add_breakpoint(101, 1000, 181, 1080)
+            .add_breakpoint(101, 1000, 181, 1080)       # undefined excessive range
 
         self.calculators[calculators.O3] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
@@ -174,7 +174,7 @@ class CommonAirQualityHourlyIndex(standards.AqiStandards):
             .add_breakpoint( 26,   50,  61,  120) \
             .add_breakpoint( 51,   75, 121,  180) \
             .add_breakpoint( 76,  100, 181,  240) \
-            .add_breakpoint(101, 1000, 241, 1140)
+            .add_breakpoint(101, 1000, 241, 1140)       # undefined excessive range
 
         self.calculators[calculators.PM2_5] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
@@ -186,7 +186,7 @@ class CommonAirQualityHourlyIndex(standards.AqiStandards):
             .add_breakpoint( 26,   50,  16,   30) \
             .add_breakpoint( 51,   75,  31,   55) \
             .add_breakpoint( 76,  100,  56,  110) \
-            .add_breakpoint(101, 1000, 111, 1010)
+            .add_breakpoint(101, 1000, 111, 1010)       # undefined excessive range
 
         self.calculators[calculators.CO] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
@@ -198,7 +198,7 @@ class CommonAirQualityHourlyIndex(standards.AqiStandards):
             .add_breakpoint( 26,   50,  5001,   7500) \
             .add_breakpoint( 51,   75,  7501,  10000) \
             .add_breakpoint( 76,  100, 10001,  20000) \
-            .add_breakpoint(101, 1000, 20001, 359600)
+            .add_breakpoint(101, 1000, 20001, 359600)   # undefined excessive range
 
         self.calculators[calculators.SO2] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
@@ -210,4 +210,4 @@ class CommonAirQualityHourlyIndex(standards.AqiStandards):
             .add_breakpoint( 26,   50,  51,  100) \
             .add_breakpoint( 51,   75, 101,  350) \
             .add_breakpoint( 76,  100, 351,  500) \
-            .add_breakpoint(101, 1000, 501, 1400)
+            .add_breakpoint(101, 1000, 501, 1400)       # undefined excessive range
