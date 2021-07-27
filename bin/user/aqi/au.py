@@ -40,14 +40,26 @@ class AirQualityIndex(standards.AqiStandards):
                 breakpoints=[0, 34, 100, 150, 200])
 
             # Australia's NEPM also defines O3 as 4 hours mean at 0.08 ppm
-            # I don't know how these are combined.
-            self.calculators[calculators.O3] = calculators.LinearScale(
-                unit='parts_per_million',
-                duration_in_secs=1 * calculators.HOUR,
-                obs_frequency_in_sec=obs_frequency_in_sec,
-                data_cleaner=calculators.ROUND_TO_2,
-                high_obs=0.10,
-                breakpoints=[0, 34, 100, 150, 200])
+            # I can't find how these are supposed to be combined, so I'm
+            # assuming that Australia is doing something like the United States
+            # where you calculate both and then take the maximum value.
+            self.calculators[calculators.O3] = calculators.CalculatorCollection()
+            self.calculators[calculators.O3].add_calculator(
+                calculators.LinearScale(
+                    unit='parts_per_million',
+                    duration_in_secs=1 * calculators.HOUR,
+                    obs_frequency_in_sec=obs_frequency_in_sec,
+                    data_cleaner=calculators.ROUND_TO_2,
+                    high_obs=0.10,
+                    breakpoints=[0, 34, 100, 150, 200]))
+            self.calculators[calculators.O3].add_calculator(
+                calculators.LinearScale(
+                    unit='parts_per_million',
+                    duration_in_secs=4 * calculators.HOUR,
+                    obs_frequency_in_sec=obs_frequency_in_sec,
+                    data_cleaner=calculators.ROUND_TO_2,
+                    high_obs=0.08,
+                    breakpoints=[0, 34, 100, 150, 200]))
 
             self.calculators[calculators.SO2] = calculators.LinearScale(
                 unit='parts_per_million',

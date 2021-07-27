@@ -34,17 +34,22 @@ PB = 'pb'
 def get_last_valid_index(observations, duration_in_secs):
     '''Returns index into observations of the observation that is the
     closest, but not earlier than the earliest valid timestamp.'''
-    earliest_valid_timestamp = observations[0][0] - duration_in_secs
+    first_invalid_timestamp = observations[0][0] - duration_in_secs
     best_delta = None
     best_index = None
     start = 0
     end = len(observations)
+
     while start < end:
         mid = int((end - start) / 2) + start
-        delta = observations[mid][0] - earliest_valid_timestamp;
+        delta = observations[mid][0] - first_invalid_timestamp;
         if delta < 0:
             # observation is too early
             end = mid
+        elif delta == 0:
+            # We found the first invalid index, back up one
+            best_index = mid - 1
+            break
         else:
             # observation might be valid
             if best_delta is None or best_delta > delta:
@@ -56,6 +61,7 @@ def get_last_valid_index(observations, duration_in_secs):
                 end = mid
     if best_index is None:
         raise ValueError('all observations are outside the valid range')
+
     return best_index
 
 def validate_number_of_observations(observations, duration_in_secs, obs_frequency_in_sec, required_observation_ratio):
@@ -65,7 +71,7 @@ def validate_number_of_observations(observations, duration_in_secs, obs_frequenc
     if len(observations) < num_required:
         raise ValueError('Not enough observations wanted %d, but got %d' % (num_required, len(observations)))
 
-def linear_interoplate(breakpoint, obs_mean):
+def linear_interpolate(breakpoint, obs_mean):
     numerator = (obs_mean - breakpoint['low_obs']) * (breakpoint['high_aqi'] - breakpoint['low_aqi'])
     denominator = breakpoint['high_obs'] - breakpoint['low_obs']
     return int(round((numerator / float(denominator)) + breakpoint['low_aqi']))
@@ -209,6 +215,9 @@ class CalculatorCollection(AqiCalculator):
         return max_dur
 
     def calculate(self, pollutant, observation_unit, observations):
+        '''Returns a calculation by combining the results of the subcalulators.
+        Any subcalculator that fails to return a result is skipped. The maximum
+        score from multiple results is returned.'''
         aqi_result = None
         for calculator in self.calculators:
             try:
@@ -216,6 +225,10 @@ class CalculatorCollection(AqiCalculator):
                 if (aqi_result is None) or (res[0] > aqi_result[0]):
                     aqi_result = res
             except IndexError:
+                # off scale
+                pass
+            except ValueError:
+                # not enough observations
                 pass
         if aqi_result != None:
             return aqi_result
@@ -249,7 +262,7 @@ class BreakpointTable(AqiCalculator):
         self.bp_index_offset = params['bp_index_offset']
         self.breakpoints = []
 
-    def add_breakpoint(self, low_aqi, high_aqi, low_obs, high_obs, function=linear_interoplate):
+    def add_breakpoint(self, low_aqi, high_aqi, low_obs, high_obs, function=linear_interpolate):
         '''Adds an entry to the table, mapping a range of AQIs to a range of observations.'''
         self.breakpoints.append({
             'low_aqi':  low_aqi,
@@ -287,9 +300,12 @@ class LinearScale(AqiCalculator):
             low point on the AQI scale in indexed values (default 0)
         high_aqi
             high point on the AQI scale in indexed values (default 100)
+        breakpoints (REQUIRED)
+            Like BreakpointTable. Maps AQIs to categories. List of starting values
+            for each category.
     '''
     def __init__(self, **kwargs):
-        super(LinearScale, self).__init__(kwargs)
+        super(LinearScale, self).__init__(**kwargs)
         self.interpolation_config = {
             'low_obs': kwargs.get('low_obs', 0),
             'high_obs': kwargs['high_obs'],
@@ -298,7 +314,7 @@ class LinearScale(AqiCalculator):
         }
         self.breakpoints = kwargs['breakpoints']
 
-    def _calculate_index_from_mean(self, pollutant, observation_unit, observations):
+    def _calculate_index_from_mean(self, obs_mean):
         score = linear_interpolate(self.interpolation_config, obs_mean)
         for (i, low) in enumerate(self.breakpoints):
             if i < (len(self.breakpoints) - 1):
