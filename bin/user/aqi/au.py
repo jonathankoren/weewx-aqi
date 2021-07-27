@@ -40,7 +40,9 @@ class AirQualityIndex(standards.AqiStandards):
                 breakpoints=[0, 34, 100, 150, 200])
 
             # Australia's NEPM also defines O3 as 4 hours mean at 0.08 ppm
-            # I don't know how these are combined.
+            # I can't find how these are supposed to be combined, so I'm
+            # assuming that Australia is doing something like the United States
+            # where you calculate both and then take the maximum value.
             self.calculators[calculators.O3] = calculators.CalculatorCollection()
             self.calculators[calculators.O3].add_calculator(
                 calculators.LinearScale(
