@@ -45,6 +45,7 @@ class AirQualityIndexInstaller(ExtensionInstaller):
             },
             files=[('bin/user',
                     [ 'bin/user/aqi/__init__.py',
+                    'bin/user/aqi/au.py',
                     'bin/user/aqi/ca.py',
                     'bin/user/aqi/calculators.py',
                     'bin/user/aqi/eu.py',

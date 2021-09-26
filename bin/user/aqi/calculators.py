@@ -1,5 +1,5 @@
 # weewx-aqi
-# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2021 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 from abc import ABCMeta, abstractmethod
@@ -34,18 +34,23 @@ PB = 'pb'
 
 def get_last_valid_index(observations, duration_in_secs):
     '''Returns index into observations of the observation that is the
-    closest, but not earlier than, earliest_valid_timestamp.'''
-    earliest_valid_timestamp = observations[0][0] - duration_in_secs
+    closest, but not earlier than the earliest valid timestamp.'''
+    first_invalid_timestamp = observations[0][0] - duration_in_secs
     best_delta = None
     best_index = None
     start = 0
     end = len(observations)
+
     while start < end:
         mid = int((end - start) / 2) + start
-        delta = observations[mid][0] - earliest_valid_timestamp;
+        delta = observations[mid][0] - first_invalid_timestamp;
         if delta < 0:
             # observation is too early
             end = mid
+        elif delta == 0:
+            # We found the first invalid index, back up one
+            best_index = mid - 1
+            break
         else:
             # observation might be valid
             if best_delta is None or best_delta > delta:
@@ -57,6 +62,7 @@ def get_last_valid_index(observations, duration_in_secs):
                 end = mid
     if best_index is None:
         raise ValueError('all observations are outside the valid range')
+
     return best_index
 
 def validate_number_of_observations(observations, duration_in_secs, obs_frequency_in_sec, required_observation_ratio):
@@ -66,7 +72,7 @@ def validate_number_of_observations(observations, duration_in_secs, obs_frequenc
     if len(observations) < num_required:
         raise ValueError('Not enough observations wanted %d, but got %d' % (num_required, len(observations)))
 
-def linear_interoplate(breakpoint, obs_mean):
+def linear_interpolate(breakpoint, obs_mean):
     numerator = (obs_mean - breakpoint['low_obs']) * (breakpoint['high_aqi'] - breakpoint['low_aqi'])
     denominator = breakpoint['high_obs'] - breakpoint['low_obs']
     return int(round((numerator / float(denominator)) + breakpoint['low_aqi']))
@@ -92,6 +98,10 @@ class AqiCalculator(with_metaclass(ABCMeta)):
                 function to be applied after the mean calculation
                 DEFAULT: IDENTITY
 
+            mean_calculator
+                Function that returns the mean observation from a list of samples
+                DEFAULT: arithmetic_mean
+
             unit (REQUIRED)
                 units the observations are in
 
@@ -110,6 +120,7 @@ class AqiCalculator(with_metaclass(ABCMeta)):
         params = {
             'data_cleaner': IDENTITY,
             'mean_cleaner': IDENTITY,
+            'mean_calculator': arithmetic_mean,
             # unit (REQUIRED, so it's missing here)
             # duration_in_secs (REQUIRED)
             # obs_frequency_in_sec (REQUIRED)
@@ -118,6 +129,7 @@ class AqiCalculator(with_metaclass(ABCMeta)):
         params.update(kwargs)
         self.data_cleaner = params['data_cleaner']
         self.mean_cleaner = params['mean_cleaner']
+        self.mean_calculator = params['mean_calculator']
         self.unit = params['unit']
         self.obs_frequency_in_sec = params['obs_frequency_in_sec']
         self.required_observation_ratio = params['required_observation_ratio']
@@ -127,7 +139,6 @@ class AqiCalculator(with_metaclass(ABCMeta)):
         '''Returns the maximum duration window for the calculator.'''
         return self.duration_in_secs
 
-    @abstractmethod
     def calculate(self, pollutant, observation_unit, observations):
         '''Returns the AQI index for the set of observations.
         Observations are recorded as an array of maps containing keys `dateTime`
@@ -139,102 +150,23 @@ class AqiCalculator(with_metaclass(ABCMeta)):
         observations (performing conversions if appropriate), prior calculation.
         Raises ValueError if the observations are somehow invalid (e.g. wrong
         units, wrong time range, too many missing values, etc.).'''
-
-class AqiTable(AqiCalculator):
-    '''Calculates an air quality index (AQI) from a table. Each entry in the
-    table contains a mapping of a rage of AQI values to a range of pollutant
-    concentrations. The specific AQI value is determined by a linear
-    interpolation of pollutant concentration to AQI value defined for the
-    range.'''
-    def __init__(self, **kwargs):
-        '''Creates a new AqiTable'''
-        # we don't need anything here, we're just implementing the interface.
-        # BreakpointTables do all the work.
-        super(AqiTable, self).__init__(unit=None, duration_in_secs=None, obs_frequency_in_sec=None)
-        self.breakpoint_tables = []
-
-    def add_breakpoint_table(self, breakpoint_table):
-        '''Creates, and returns, a new BreakpointTable to the AqiTable that is
-        valid for observations in the specified time range'''
-        self.breakpoint_tables.append(breakpoint_table)
-        self.unit = self.breakpoint_tables[0].unit
-        return breakpoint_table
-
-    def max_duration(self):
-        max_dur = 0
-        for t in self.breakpoint_tables:
-            if t.max_duration() > max_dur:
-                max_dur = t.max_duration()
-        return max_dur
-
-    def calculate(self, pollutant, observation_unit, observations):
-        aqi_result = None
-        for table in self.breakpoint_tables:
-            try:
-                res = table.calculate(pollutant, observation_unit, observations)
-                if (aqi_result is None) or (res[0] > aqi_result[0]):
-                    aqi_result = res
-            except IndexError:
-                pass
-        if aqi_result != None:
-            return aqi_result
-        else:
-            raise ValueError('AQI could not be calculated for the observations')
-
-class BreakpointTable(AqiCalculator):
-    '''This class is used to build the AqiTable.'''
-    def __init__(self, **kwargs):
-        '''Creates a new breakpoint table that is valid for observations in
-        the specified time range. This table is initially empty.
-
-        Additional kwargs:
-            bp_index_offset
-                First entry of this BreakpointTable corresponds to this AQI index
-                DEFAULT: 0
-            mean_calculator
-                Function that returns the mean observation from a list of samples
-                DEFAULT: arithmetic_mean
-        '''
-        super(BreakpointTable, self).__init__(**kwargs)
-        if 'bp_index_offset' in kwargs:
-            self.bp_index_offset = kwargs['bp_index_offset']
-        else:
-            self.bp_index_offset = 0
-        if 'mean_calculator' not in kwargs:
-            self.mean_calculator = arithmetic_mean
-        else:
-            self.mean_calculator = kwargs['mean_calculator']
-        self.breakpoints = []
-
-    def add_breakpoint(self, low_aqi, high_aqi, low_obs, high_obs, function=linear_interoplate):
-        '''Adds an entry to the table, mapping a range of AQIs to a range of observations.'''
-        self.breakpoints.append({
-            'low_aqi':  low_aqi,
-            'high_aqi': high_aqi,
-            'low_obs':  low_obs,
-            'high_obs': high_obs,
-            'function': function,
-        })
-        self.breakpoints = sorted(self.breakpoints, key=operator.itemgetter('low_obs'))
-        return self
-
-    def calculate(self, pollutant, observation_unit, observations):
-        '''Calculates the AQI for a particular breakpoint.'''
-        # check the units
         if observation_unit != self.unit:
             raise ValueError('inappropriate units, expected %s, but got %s' % (self.unit, observation_unit))
 
         # clean the data
         observations = sorted(observations, key=operator.itemgetter('dateTime'), reverse=True)
-        clean_observations = []
+
+        j = 0
+        clean_observations = [None] * len(observations)
         for i in range(len(observations)):
             if observations[i][pollutant] is None:
                 continue
             try:
-                clean_observations.append((observations[i]['dateTime'], self.data_cleaner(observations[i][pollutant])))
+                clean_observations[j] = (observations[i]['dateTime'], self.data_cleaner(observations[i][pollutant]))
+                j += 1
             except TypeError as e:
                 syslog.syslog(syslog.LOG_WARNING, "%s at %d threw exception %s" % (pollutant, observations[i]['dateTime'], str(e)))
-        observations = clean_observations
+        observations = clean_observations[:j]
 
         # validate observations
         last_valid_index = get_last_valid_index(observations, self.duration_in_secs)
@@ -247,6 +179,103 @@ class BreakpointTable(AqiCalculator):
         # calculate the mean observation
         obs_mean = self.mean_cleaner(self.mean_calculator(observations))
 
+        # map the mean to an AQI value
+        return self._calculate_index_from_mean(obs_mean)
+
+    @abstractmethod
+    def _calculate_index_from_mean(self, mean):
+        '''Performs the final calculation of the AQI after all data validation
+        and cleaning has been performed.
+
+        This is a private function to be called from calculate().'''
+        raise NotImplementedError()
+
+class CalculatorCollection(AqiCalculator):
+    '''Used when multiple AqiCalculators are used for the single pollutant in
+    a single standard.
+
+    This is not a common case.'''
+    def __init__(self, **kwargs):
+        '''Creates a new CalculatorCollection'''
+        # we don't need anything here, we're just implementing the interface.
+        # BreakpointTables do all the work.
+        super(CalculatorCollection, self).__init__(unit=None, duration_in_secs=None, obs_frequency_in_sec=None)
+        self.calculators = []
+
+    def add_calculator(self, calculator):
+        '''Adds an AqiCalculator to the CalculatorCollection'''
+        self.calculators.append(calculator)
+        self.unit = self.calculators[0].unit
+        return calculator
+
+    def max_duration(self):
+        max_dur = 0
+        for t in self.calculators:
+            if t.max_duration() > max_dur:
+                max_dur = t.max_duration()
+        return max_dur
+
+    def calculate(self, pollutant, observation_unit, observations):
+        '''Returns a calculation by combining the results of the subcalulators.
+        Any subcalculator that fails to return a result is skipped. The maximum
+        score from multiple results is returned.'''
+        aqi_result = None
+        for calculator in self.calculators:
+            try:
+                res = calculator.calculate(pollutant, observation_unit, observations)
+                if (aqi_result is None) or (res[0] > aqi_result[0]):
+                    aqi_result = res
+            except IndexError:
+                # off scale
+                pass
+            except ValueError:
+                # not enough observations
+                pass
+        if aqi_result != None:
+            return aqi_result
+        else:
+            raise ValueError('AQI could not be calculated for the observations')
+
+    def _calculate_index_from_mean(self, mean):
+        raise NotImplementedError()
+
+class BreakpointTable(AqiCalculator):
+    '''Calculates an air quality index (AQI) from a table. Each entry in the
+    table contains a mapping of a rage of AQI values to a range of pollutant
+    concentrations. The specific AQI value is determined by a linear
+    interpolation of pollutant concentration to AQI value defined for the
+    range.'''
+    def __init__(self, **kwargs):
+        '''Creates a new breakpoint table that is valid for observations in
+        the specified time range. This table is initially empty.
+
+        Additional kwargs:
+            bp_index_offset
+                First entry of this BreakpointTable corresponds to this AQI index
+                DEFAULT: 0
+        '''
+        super(BreakpointTable, self).__init__(**kwargs)
+        params = {
+            'bp_index_offset': 0,
+        }
+        params.update(kwargs)
+
+        self.bp_index_offset = params['bp_index_offset']
+        self.breakpoints = []
+
+    def add_breakpoint(self, low_aqi, high_aqi, low_obs, high_obs, function=linear_interpolate):
+        '''Adds an entry to the table, mapping a range of AQIs to a range of observations.'''
+        self.breakpoints.append({
+            'low_aqi':  low_aqi,
+            'high_aqi': high_aqi,
+            'low_obs':  low_obs,
+            'high_obs': high_obs,
+            'function': function,
+        })
+        self.breakpoints = sorted(self.breakpoints, key=operator.itemgetter('low_obs'))
+        return self
+
+    def _calculate_index_from_mean(self, obs_mean):
         for bp_index in range(len(self.breakpoints)):
             breakpoint = self.breakpoints[bp_index]
             if breakpoint['low_obs'] <= obs_mean and obs_mean <= breakpoint['high_obs']:
@@ -255,26 +284,44 @@ class BreakpointTable(AqiCalculator):
 
 class ArithmeticMean(AqiCalculator):
     '''Simply calculates the arithmetic mean of a set of observations.'''
-    def calculate(self, pollutant, observation_unit, observations):
-        # check the units
-        if observation_unit != self.unit:
-            raise ValueError('inappropriate units, expected %s, but got %s' % (self.unit, observation_unit))
+    def __init__(self, **kwargs):
+        kwargs['mean_calculator'] = arithmetic_mean
+        super(ArithmeticMean, self).__init__(kwargs)
 
-        # clean the data
-        observations = sorted(observations, key=operator.itemgetter('dateTime'), reverse=True)
-        for i in range(len(observations)):
-            observations[i] = (observations[i]['dateTime'], self.data_cleaner(observations[i][pollutant]))
+    def _calculate_index_from_mean(self, obs_mean):
+        return (obs_mean, None)
 
-        # validate observations
-        last_valid_index = get_last_valid_index(observations, self.duration_in_secs)
-        observations = observations[:last_valid_index + 1]
-        validate_number_of_observations(observations,
-            self.duration_in_secs,
-            self.obs_frequency_in_sec,
-            self.required_observation_ratio)
+class LinearScale(AqiCalculator):
+    '''Linearly interpolates an observation range to an AQI range.
+        low_obs
+            low point on the scale in observed units (default 0)
+        high_obs (REQUIRED)
+            high point on the scale in observed units
+        low_aqi
+            low point on the AQI scale in indexed values (default 0)
+        high_aqi
+            high point on the AQI scale in indexed values (default 100)
+        breakpoints (REQUIRED)
+            Like BreakpointTable. Maps AQIs to categories. List of starting values
+            for each category.
+    '''
+    def __init__(self, **kwargs):
+        super(LinearScale, self).__init__(**kwargs)
+        self.interpolation_config = {
+            'low_obs': kwargs.get('low_obs', 0),
+            'high_obs': kwargs['high_obs'],
+            'low_aqi': kwargs.get('low_aqi', 0),
+            'high_aqi': kwargs.get('high_aqi', 100)
+        }
+        self.breakpoints = kwargs['breakpoints']
 
-        # calculate the mean observation
-        obs_sum = 0
-        for obs in observations:
-            obs_sum = obs_sum + obs[1]
-        return self.mean_cleaner(obs_sum / float(len(observations)))
+    def _calculate_index_from_mean(self, obs_mean):
+        score = linear_interpolate(self.interpolation_config, obs_mean)
+        for (i, low) in enumerate(self.breakpoints):
+            if i < (len(self.breakpoints) - 1):
+                if (low <= score) and (score < self.breakpoints[i + 1]):
+                    index = i
+                    break
+            else:
+                index = i
+        return (score, index)

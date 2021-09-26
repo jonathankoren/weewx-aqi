@@ -1,5 +1,5 @@
 # weewx-aqi
-# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2021 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 from abc import ABCMeta, abstractmethod
@@ -14,7 +14,10 @@ MX_IMCA_GUID = 3
 UK_DAQI_GUID = 4
 US_AQI_GUID = 5
 US_NOWCAST_GUID = 6
-EU_AQI_GUID = 7
+EU_EAQI_GUID = 7
+EU_CAQI_H_GUID = 8
+AU_AQI_GUID = 9
+AU_IWRPI_GUID = 10
 
 class AqiStandards(with_metaclass(ABCMeta)):
     def __init__(self, colors, categories, guid):
@@ -58,7 +61,7 @@ class AqiStandards(with_metaclass(ABCMeta)):
         error if the any of the AQIs can not calculated.'''
         # Per https://www3.epa.gov/airnow/aqi-technical-assistance-document-may2016.pdf ,
         # multiple AQIs (i.e. AQIs from multiple pollutants) can be combined by
-        # simply taking the maximum value of theaqis.
+        # simply taking the maximum value of the AQIs.
         #
         # (Yes, the is a US-centric standard, but it also the most common method,
         # of combining AQIs.)
