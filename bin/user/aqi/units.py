@@ -67,21 +67,21 @@ def microgram_per_meter_cubed_to_ppb(pollutant, ug_per_m3, sensor_temp_in_kelvin
     return round(ppb, 3)
 
 # Define unit group for AQI columns
-weewx.units.obs_group_dict['aqi_pm2_5'] = 'air_quality_index'
-weewx.units.obs_group_dict['aqi_pm10_0']  = 'air_quality_index'
-weewx.units.obs_group_dict['aqi_co']    = 'air_quality_index'
-weewx.units.obs_group_dict['aqi_no2']   = 'air_quality_index'
-weewx.units.obs_group_dict['aqi_so2']   = 'air_quality_index'
-weewx.units.obs_group_dict['aqi_o3']    = 'air_quality_index'
-weewx.units.obs_group_dict['aqi_nh3']   = 'air_quality_index'
-weewx.units.obs_group_dict['aqi_pb']    = 'air_quality_index'
+weewx.units.obs_group_dict['aqi_pm2_5'] = 'group_count'
+weewx.units.obs_group_dict['aqi_pm10_0']  = 'group_count'
+weewx.units.obs_group_dict['aqi_co']    = 'group_count'
+weewx.units.obs_group_dict['aqi_no2']   = 'group_count'
+weewx.units.obs_group_dict['aqi_so2']   = 'group_count'
+weewx.units.obs_group_dict['aqi_o3']    = 'group_count'
+weewx.units.obs_group_dict['aqi_nh3']   = 'group_count'
+weewx.units.obs_group_dict['aqi_pb']    = 'group_count'
 
 # define the units
-weewx.units.USUnits['air_quality_index'] = 'air_quality_index'
-weewx.units.MetricUnits['air_quality_index'] = 'air_quality_index'
-weewx.units.MetricWXUnits['air_quality_index'] = 'air_quality_index'
-weewx.units.default_unit_format_dict['air_quality_index'] = '%d'
-weewx.units.default_unit_label_dict['air_quality_index'] = '' # unitless
+#weewx.units.USUnits['group_count'] = 'count'
+#weewx.units.MetricUnits['group_count'] = 'count'
+#weewx.units.MetricWXUnits['group_count'] = 'count'
+#weewx.units.default_unit_format_dict['air_quality_index'] = '%d'
+#weewx.units.default_unit_label_dict['air_quality_index'] = '' # unitless
 
 # unit conversion
 if 'liter' not in weewx.units.conversionDict:
