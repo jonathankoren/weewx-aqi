@@ -11,6 +11,7 @@ from six import with_metaclass
 # number of seconds
 MINUTE = 60
 HOUR = 3600
+DAY = 86400
 
 # data cleaning functions
 IDENTITY = lambda x: x
