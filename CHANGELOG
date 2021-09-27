@@ -1,2 +1,38 @@
 0.1 2018-05-14
 * Initial version
+
+1.0.0 2018-05-16
+* Initial release
+
+1.1.0 2019-06-02
+* Adds $aqi template tag for displaying AQI colors and descriptions.
+* Corrects, and updatesREADME's template examples.
+* Minor bugfix when linear interpolating
+
+1.1.1 2019-06-03
+* Fixed bug where AQI indices couldn't be interpreted if they came back as floats
+
+1.1.2 2019-06-09
+* Bug fix around AQI SearchList
+
+1.2.0 2020-05-09
+* WeeWx 4.0 comparability and bug fixes for when using non-purple-air sensors.
+
+1.1.3 2020-05-11
+* WeeWx 4.0 support for python2
+
+1.3 2020-07-01
+* Adds support for missing pollution units.
+* Correctly imports temperature and pressure data from the main db when it is not provided by the air quality sensor.
+* Bug fixes to the aqi_backfill script.
+* Supports both Python 2 and Python 3.
+* Closes #7 (UK DAQI aqi.sdb #7 ) https://github.com/jonathankoren/weewx-aqi/issues/7
+
+1.4 2021-09-27
+* Updates India's breakpoint table for lead
+* Adds support for Australia's Air Quality Index
+* Adds support for Australia's Interim Web Reporting Particulate Index (February 2020)
+* Adds support for European Union's European Air Quality Index
+* Adds support for European Union's Common Air Quality Hourly Index
+* Changes AQI type registration from `air_quality_index` to `count` for XType compatibility
+* Updates CHANGELOG ;)
