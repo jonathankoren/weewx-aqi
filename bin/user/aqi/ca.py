@@ -1,5 +1,5 @@
 # weewx-aqi
-# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2021 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 from . import calculators
@@ -60,9 +60,9 @@ class AirQualityHealthIndex(standards.AqiStandards):
 
         # calculate features
         try:
-            o3 = self.calculators[calculators.O3].calculate(calculators.O3, pollutants_and_units[calculators.O3], observations)
-            no2 = self.calculators[calculators.NO2].calculate(calculators.NO2, pollutants_and_units[calculators.NO2], observations)
-            pm2_5 = self.calculators[calculators.PM2_5].calculate(calculators.PM2_5, pollutants_and_units[calculators.PM2_5], observations)
+            o3 = self.calculators[calculators.O3].calculate(calculators.O3, pollutants_and_units[calculators.O3], observations)[0]
+            no2 = self.calculators[calculators.NO2].calculate(calculators.NO2, pollutants_and_units[calculators.NO2], observations)[0]
+            pm2_5 = self.calculators[calculators.PM2_5].calculate(calculators.PM2_5, pollutants_and_units[calculators.PM2_5], observations)[0]
         except KeyError:
             raise ValueError("Can't calculate AQHI. Requries O3, NO2, and PM2_5 readings")
 

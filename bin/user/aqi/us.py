@@ -1,8 +1,9 @@
 # weewx-aqi
-# Copyright 2018-2020 - Jonathan Koren <jonathan@jonathankoren.com>
+# Copyright 2018-2021 - Jonathan Koren <jonathan@jonathankoren.com>
 # License: GPL 3
 
 import operator
+import syslog
 
 from . import calculators
 from . import standards
@@ -28,8 +29,7 @@ class AirQualityIndex(standards.AqiStandards):
             standards.US_AQI_GUID)
 
         # US doesn't specify number of observations required. lets go with 75% since that's the UK's standard
-        self.calculators[calculators.PM2_5] = calculators.AqiTable()
-        self.calculators[calculators.PM2_5].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.PM2_5] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_1,
             mean_cleaner=calculators.TRUNCATE_TO_1,
             unit='microgram_per_meter_cubed',
@@ -40,10 +40,9 @@ class AirQualityIndex(standards.AqiStandards):
             .add_breakpoint(101, 150,  35.5,  55.4) \
             .add_breakpoint(151, 200,  55.5, 150.4) \
             .add_breakpoint(201, 300, 150.5, 250.4) \
-            .add_breakpoint(301, 500, 250.5, 500.4))
+            .add_breakpoint(301, 500, 250.5, 500.4)
 
-        self.calculators[calculators.PM10_0] = calculators.AqiTable()
-        self.calculators[calculators.PM10_0].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.PM10_0] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
             unit='microgram_per_meter_cubed',
@@ -54,10 +53,9 @@ class AirQualityIndex(standards.AqiStandards):
             .add_breakpoint(101, 150, 155, 254) \
             .add_breakpoint(151, 200, 255, 354) \
             .add_breakpoint(201, 300, 355, 424) \
-            .add_breakpoint(301, 500, 425, 604))
+            .add_breakpoint(301, 500, 425, 604)
 
-        self.calculators[calculators.CO] = calculators.AqiTable()
-        self.calculators[calculators.CO].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.CO] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_1,
             mean_cleaner=calculators.TRUNCATE_TO_1,
             unit='parts_per_million',
@@ -68,10 +66,9 @@ class AirQualityIndex(standards.AqiStandards):
             .add_breakpoint(101, 150,  9.5, 12.4) \
             .add_breakpoint(151, 200, 12.5, 15.4) \
             .add_breakpoint(201, 300, 15.5, 30.4) \
-            .add_breakpoint(301, 500, 30.5, 50.4))
+            .add_breakpoint(301, 500, 30.5, 50.4)
 
-        self.calculators[calculators.NO2] = calculators.AqiTable()
-        self.calculators[calculators.NO2].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.NO2] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
             unit='parts_per_billion',
@@ -82,10 +79,10 @@ class AirQualityIndex(standards.AqiStandards):
             .add_breakpoint(101, 150,  101,  360) \
             .add_breakpoint(151, 200,  361,  649) \
             .add_breakpoint(201, 300,  650, 1249) \
-            .add_breakpoint(301, 500, 1250, 2049))
+            .add_breakpoint(301, 500, 1250, 2049)
 
         # Per https://www3.epa.gov/airnow/aqi-technical-assistance-document-may2016.pdf :
-        # "How do I calculateaqi values for SO2? [...] If you have a daily max 1-hour.HOUR
+        # "How do I calculate aqi values for SO2? [...] If you have a daily max 1-hour.HOUR
         # SO2 concentration below 305 ppb, then use the breakpoints in Table 2 to
         # calculate theaqi value. If you have a 24-hour average SO2 concentration
         # greater than or equal to 305 ppb, then use the breakpoints in Table 2 to
@@ -96,7 +93,7 @@ class AirQualityIndex(standards.AqiStandards):
         # value, you find that the 24-hour concentration is not above 305 ppb. If this
         # happens, use 200 for the lower and upper aqi breakpoints (ILo and IHi) in
         # Equation 1 to calculate theaqi value based on the daily max 1-hour value.
-        # This effectively fixes theaqi value at 200 exactly, which ensures that you
+        # This effectively fixes the aqi value at 200 exactly, which ensures that you
         # get the highest possible aqi value associated with your 1-hour concentration
         # on such days."
         #
@@ -104,8 +101,8 @@ class AirQualityIndex(standards.AqiStandards):
         # the AQI could not be calculated. In this case, the caller will need
         # check if the 1-hour average is >= 305 and the 24-hour average is < 305,
         # then return an AQi of exactly 200.
-        self.calculators[calculators.SO2] = calculators.AqiTable()
-        self.calculators[calculators.SO2].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.SO2] = calculators.CalculatorCollection()
+        self.calculators[calculators.SO2].add_calculator(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
             unit='parts_per_billion',
@@ -115,7 +112,7 @@ class AirQualityIndex(standards.AqiStandards):
             .add_breakpoint( 51, 100,  36,  75) \
             .add_breakpoint(101, 150,  76, 185) \
             .add_breakpoint(151, 200, 186, 304))
-        self.calculators[calculators.SO2].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.SO2].add_calculator(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
             unit='parts_per_billion',
@@ -146,8 +143,8 @@ class AirQualityIndex(standards.AqiStandards):
         # value of 0.078 ppm.  First you disregard the 1-hour ozone value because
         # it is less than 0.125 ppm.  Then you calculate the index for the 8-hour
         # ozone value as before.
-        self.calculators[calculators.O3] = calculators.AqiTable()
-        self.calculators[calculators.O3].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.O3] = calculators.CalculatorCollection()
+        self.calculators[calculators.O3].add_calculator(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
             unit='parts_per_billion',
@@ -158,7 +155,7 @@ class AirQualityIndex(standards.AqiStandards):
             .add_breakpoint(101, 150,  71,  85) \
             .add_breakpoint(151, 200,  86, 105) \
             .add_breakpoint(201, 300, 106, 200))
-        self.calculators[calculators.O3].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.O3].add_calculator(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
             unit='parts_per_billion',
@@ -203,9 +200,9 @@ class AirQualityIndex(standards.AqiStandards):
             else:
                 raise e
 
-def nowcast_mean(observations, obs_frequency_in_sec, required_observation_ratio, min_hours):
+def nowcast_pm_mean(observations, obs_frequency_in_sec, required_observation_ratio, min_hours):
     '''Calculates the NowCast weighted mean for a set of observations. Each
-    hourly average requires 75% of the possible readings. '''
+    hourly average requires at least required_observation_ratio of the possible readings. '''
     hourly_means = [0.0] * 12
     hourly_samples = [0.0] * 12
 
@@ -257,6 +254,13 @@ def nowcast_mean(observations, obs_frequency_in_sec, required_observation_ratio,
             denominator = denominator + sample_weight
     return numerator / float(denominator)
 
+
+def nowcast_o3_mean(observations, obs_frequency_in_sec, required_observation_ratio, min_hours):
+    # We're using the old (pre-2019) method, instead of the partial least squares
+    # and decision tree stuff outlined in
+    # https://raw.githubusercontent.com/USEPA/O3-Nowcast/master/WhitePaper.pdf
+    return nowcast_pm_mean(observations, obs_frequency_in_sec, required_observation_ratio, min_hours)
+
 class NowCast(standards.AqiStandards):
     '''Calculates the US EPA NowCast Air Quality Index (AQI) as defined by the
     US EPA in https://www3.epa.gov/airnow/aqi-technical-assistance-document-may2016.pdf
@@ -275,11 +279,10 @@ class NowCast(standards.AqiStandards):
             standards.US_NOWCAST_GUID)
 
         # US doesn't specify number of observations required. lets go with 75% since that's the UK's standard
-        self.calculators[calculators.PM2_5] = calculators.AqiTable()
-        self.calculators[calculators.PM2_5].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.PM2_5] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_1,
             mean_cleaner=calculators.TRUNCATE_TO_1,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 2),
+            mean_calculator=lambda obs: nowcast_pm_mean(obs, obs_frequency_in_sec, 0.75, 3),
             unit='microgram_per_meter_cubed',
             duration_in_secs=12 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec) \
@@ -288,13 +291,12 @@ class NowCast(standards.AqiStandards):
             .add_breakpoint(101, 150,  35.5,  55.4) \
             .add_breakpoint(151, 200,  55.5, 150.4) \
             .add_breakpoint(201, 300, 150.5, 250.4) \
-            .add_breakpoint(301, 500, 250.5, 500.4))
+            .add_breakpoint(301, 500, 250.5, 500.4)
 
-        self.calculators[calculators.PM10_0] = calculators.AqiTable()
-        self.calculators[calculators.PM10_0].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.PM10_0] = calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 2),
+            mean_calculator=lambda obs: nowcast_pm_mean(obs, obs_frequency_in_sec, 0.75, 3),
             unit='microgram_per_meter_cubed',
             duration_in_secs=12 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec) \
@@ -303,27 +305,27 @@ class NowCast(standards.AqiStandards):
             .add_breakpoint(101, 150, 155, 254) \
             .add_breakpoint(151, 200, 255, 354) \
             .add_breakpoint(201, 300, 355, 424) \
-            .add_breakpoint(301, 500, 425, 604))
+            .add_breakpoint(301, 500, 425, 604)
 
-        self.calculators[calculators.O3] = calculators.AqiTable()
-        self.calculators[calculators.O3].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.O3] = calculators.CalculatorCollection()
+        self.calculators[calculators.O3].add_calculator(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 1),
+            mean_calculator=lambda obs: nowcast_o3_mean(obs, obs_frequency_in_sec, 0.75, 1),
             unit='parts_per_billion',
-            duration_in_secs=8 * calculators.HOUR,
+            duration_in_secs=1 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec) \
             .add_breakpoint(  0,  50,   0,  54) \
             .add_breakpoint( 51, 100,  55,  70) \
             .add_breakpoint(101, 150,  71,  85) \
             .add_breakpoint(151, 200,  86, 105) \
             .add_breakpoint(201, 300, 106, 200))
-        self.calculators[calculators.O3].add_breakpoint_table(calculators.BreakpointTable(
+        self.calculators[calculators.O3].add_calculator(calculators.BreakpointTable(
             data_cleaner=calculators.TRUNCATE_TO_0,
             mean_cleaner=calculators.TRUNCATE_TO_0,
-            mean_calculator=lambda obs: nowcast_mean(obs, obs_frequency_in_sec, 0.75, 1),
+            mean_calculator=lambda obs: nowcast_o3_mean(obs, obs_frequency_in_sec, 0.75, 1),
             unit='parts_per_billion',
-            duration_in_secs=1 * calculators.HOUR,
+            duration_in_secs=8 * calculators.HOUR,
             obs_frequency_in_sec=obs_frequency_in_sec,
             bp_index_offset=2) \
             .add_breakpoint(101, 150, 125, 164) \
