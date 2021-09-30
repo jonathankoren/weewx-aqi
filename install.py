@@ -10,7 +10,7 @@ def loader():
 class AirQualityIndexInstaller(ExtensionInstaller):
     def __init__(self):
         super(AirQualityIndexInstaller, self).__init__(
-            version="1.3",
+            version="1.4",
             name='aqi',
             description='Calculates air quality indexes.',
             author="Jonathan Koren",
