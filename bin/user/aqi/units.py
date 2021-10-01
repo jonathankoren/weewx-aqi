@@ -56,14 +56,12 @@ def convert_pollutant_units(pollutant, obs_value, obs_unit, required_unit, temp_
 
 def ppb_to_microgram_per_meter_cubed(pollutant, ppb, sensor_temp_in_kelvin=IDEAL_GAS_TEMP_IN_KELVIN, sensor_pressure_in_kilopascals=IDEAL_GAS_PRESSURE_IN_KILOPASCALS):
     '''Converts parts per billion to micrograms per cubic meters at temperature and pressure'''
-
     ugm3 = ppb * (sensor_pressure_in_kilopascals / GAS_CONSTANT) * MOLAR_MASSES[pollutant] / sensor_temp_in_kelvin
     return round(ugm3, 3)
 
 def microgram_per_meter_cubed_to_ppb(pollutant, ug_per_m3, sensor_temp_in_kelvin=IDEAL_GAS_TEMP_IN_KELVIN, sensor_pressure_in_kilopascals=IDEAL_GAS_PRESSURE_IN_KILOPASCALS):
     '''Converts parts per million to micrograms per cubic meters at temperature and pressure'''
     ppb = (ug_per_m3 * sensor_temp_in_kelvin) / ((sensor_pressure_in_kilopascals / GAS_CONSTANT) * MOLAR_MASSES[pollutant])
-
     return round(ppb, 3)
 
 # Define unit group for AQI columns

@@ -305,17 +305,24 @@ class AqiService(weewx.engine.StdService):
             # convert temperature to kelvin
             outTemp_unit = get_unit_from_column(as_column_to_real_column['outTemp'], row['weather_usUnits'])
             temp_kelvin = None
-            if outTemp_unit == 'degree_C':
-                temp_kelvin = weewx.units.CtoK(row['outTemp'])
-            else:
-                temp_kelvin = weewx.units.CtoK(weewx.units.FtoC(row['outTemp']))
+            try:
+                if row['outTemp']:
+                    if outTemp_unit == 'degree_C':
+                        temp_kelvin = weewx.units.CtoK(row['outTemp'])
+                    else:
+                        temp_kelvin = weewx.units.CtoK(weewx.units.FtoC(row['outTemp']))
+            except TypeError:
+                syslog.syslog(syslog.LOG_WARNING, "AqiService: outTemp is missing, some AQIs may be skipped")
 
             # convert pressure to pascals
             pressure_unit = get_unit_from_column(as_column_to_real_column['pressure'], row['weather_usUnits'])
             press_kilopascals = row['pressure']
-            if pressure_unit != 'hPa':
-                press_kilopascals = weewx.units.conversionDict[pressure_unit]['hPa'](press_kilopascals)
-            press_kilopascals /= 10
+            try:
+                if (pressure_unit != 'hPa') and (press_kilopascals is not None):
+                    press_kilopascals = weewx.units.conversionDict[pressure_unit]['hPa'](press_kilopascals)
+                press_kilopascals /= 10
+            except TypeError:
+                syslog.syslog(syslog.LOG_WARNING, "AqiService: pressure is missing, some AQIs may be skipped")
 
             for (pollutant, required_unit) in list(self.aqi_standard.get_pollutants().items()):
                 if pollutant in row:
@@ -323,9 +330,15 @@ class AqiService(weewx.engine.StdService):
                     try:
                         obs_unit = get_unit_from_column(as_column_to_real_column[pollutant], row['usUnits'])
                     except KeyError:
-                        syslog.syslog(syslog.LOG_WARNING, "AqiService: AQI calculation could not find unit for column %s, assuming %s" % (as_column_to_real_column[pollutant], required_unit))
+                        syslog.syslog(syslog.LOG_WARNING, "AqiService: AQI calculation could not find unit for column %s, assuming %s" \
+                            % (as_column_to_real_column[pollutant], required_unit))
                         obs_unit = required_unit
-                    joined[i][pollutant] = units.convert_pollutant_units(pollutant, row[pollutant], obs_unit, required_unit, temp_kelvin, press_kilopascals)
+                    try:
+                        joined[i][pollutant] = units.convert_pollutant_units(pollutant, row[pollutant], obs_unit, required_unit, temp_kelvin, press_kilopascals)
+                    except TypeError:
+                        syslog.syslog(syslog.LOG_WARNING, "AqiService: Could not convert %s from %s units to %s units (%f %s, %f K, %f kPa)" \
+                            % (pollutant, obs_unit, required, row[pollutant], obs_unit, required_unit, temp_kelvin, press_kilopascals))
+                        joined[i][pollutant] = None
 
         # calculate the AQIs
         record = {
@@ -340,7 +353,7 @@ class AqiService(weewx.engine.StdService):
                 try:
                     (record['aqi_' + pollutant], record['aqi_' + pollutant + '_category']) = \
                         self.aqi_standard.calculate_aqi(pollutant, required_unit, joined)
-                except (ValueError) as e:
+                except ValueError as e:
                     syslog.syslog(syslog.LOG_ERR, "AqiService: %s AQI calculation for %s on %s failed: %s" % (type(e).__name__, pollutant, event.record['dateTime'], str(e)))
                 except NotImplementedError as e:
                     # Canada's AQHI does not define indcies for individual pollutants
