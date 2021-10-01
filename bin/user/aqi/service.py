@@ -318,7 +318,7 @@ class AqiService(weewx.engine.StdService):
             pressure_unit = get_unit_from_column(as_column_to_real_column['pressure'], row['weather_usUnits'])
             press_kilopascals = row['pressure']
             try:
-                if (pressure_unit != 'hPa') and (press_kilopascals is not None):
+                if pressure_unit != 'hPa':
                     press_kilopascals = weewx.units.conversionDict[pressure_unit]['hPa'](press_kilopascals)
                 press_kilopascals /= 10
             except TypeError:
