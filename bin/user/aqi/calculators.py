@@ -35,6 +35,9 @@ PB = 'pb'
 def get_last_valid_index(observations, duration_in_secs):
     '''Returns index into observations of the observation that is the
     closest, but not earlier than the earliest valid timestamp.'''
+    if (len(observations) == 0) or (len(observations[0]) == 0):
+        raise ValueError('no observations')
+
     first_invalid_timestamp = observations[0][0] - duration_in_secs
     best_delta = None
     best_index = None
