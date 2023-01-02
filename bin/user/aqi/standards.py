@@ -73,7 +73,7 @@ class AqiStandards(with_metaclass(ABCMeta)):
             if aqi > max_aqi:
                 max_aqi = aqi
                 max_aqi_index = aqi_index
-        return (max_aqi, aqi_index)
+        return (max_aqi, max_aqi_index)
 
     def interpret_aqi_index(self, aqi_index):
         '''Returns the color and category name associated with the pollutant
